@@ -76,10 +76,10 @@ void Renderer::DrawScore(Text& scoreText)
 	SDL_RenderDrawLine(m_Renderer, (10 + 250), m_GridY, (10 + 250), (m_GridY + 100)); // Right Line
 	SDL_RenderDrawLine(m_Renderer, 10, (m_GridY + 100), (10 + 250), (m_GridY + 100)); // Bottom Line
 
-	DrawText(scoreText, { 20, m_GridY + 20 }, { m_GridY + 100, m_GridY / 2 });
+	DrawText(scoreText, { 25, m_GridY + 20 });
 }
 
-void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> rectSize)
+void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position)
 {
 	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
 	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
@@ -87,20 +87,19 @@ void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position, std::p
 	SDL_FreeSurface(surfaceMessage);
 
 	auto [positionX, positionY] = position;
-	auto [rectX, rectY] = rectSize;
-	SDL_Rect rect = { positionX, positionY, rectX, rectY };
+	SDL_Rect rect = { positionX, positionY, surfaceMessage->w, surfaceMessage->h };
 
 	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
 }
 
-void Renderer::DrawText(Text& text, int32_t positionX, int32_t positionY, int32_t rectSizeX, int32_t rectSizeY)
+void Renderer::DrawText(Text& text, int32_t positionX, int32_t positionY)
 {
 	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
 	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
 	text.SetTexture(fontTexture);
 	SDL_FreeSurface(surfaceMessage);
 
-	SDL_Rect rect = { positionX, positionY, rectSizeX, rectSizeY };
+	SDL_Rect rect = { positionX, positionY, surfaceMessage->w, surfaceMessage->h };
 
 	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
 }

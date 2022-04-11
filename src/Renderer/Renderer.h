@@ -22,8 +22,8 @@ public:
 	void DrawPiece(Piece& piece);
 	void DrawGrid();
 	void DrawScore(Text& scoreText);
-	void DrawText(Text& text, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> rectSize);
-	void DrawText(Text& text, int32_t positionX, int32_t positionY, int32_t rectSizeX, int32_t rectSizeY);
+	void DrawText(Text& text, std::pair<int32_t, int32_t> position);
+	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 
 	inline const int32_t& GetPieceSize() const { return m_PieceSize; }
 

@@ -123,7 +123,7 @@ int main(int argc, char* args[])
 					printf("todo: rotate right key pressed!\n");
 				}
 
-				scoreText.SetText("Score: 10");
+				scoreText.SetText("Score: 100");
 			}
 		}
 

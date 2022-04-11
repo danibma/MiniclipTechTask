@@ -79,6 +79,9 @@ int main(int argc, char* args[])
 	Piece orangePiece(PieceColor::Orange, 150, 150);
 	Piece redPiece(PieceColor::Red, 200, 200);
 
+	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
+	Text scoreText("Score: 0", teletoonInGame);
+
 	while (s_IsRunning)
 	{
 		SDL_Event event;
@@ -119,6 +122,8 @@ int main(int argc, char* args[])
 
 					printf("todo: rotate right key pressed!\n");
 				}
+
+				scoreText.SetText("Score: 10");
 			}
 		}
 
@@ -130,7 +135,7 @@ int main(int argc, char* args[])
 		renderer.DrawGrid();
 
 		// Draw score lines
-		renderer.DrawScore();
+		renderer.DrawScore(scoreText);
 
 		// Draw piece
 		renderer.DrawPiece(greenPiece);

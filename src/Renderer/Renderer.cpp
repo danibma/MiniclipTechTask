@@ -32,12 +32,6 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 	surface = SDL_LoadBMP("assets/red.bmp");
 	m_Colors[PieceColor::Red] = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
-
-	// Load main menu font and in game font
-	// it is the same font, but with different sizes
-	// these are going to be the most used so we load them up before runtime
-	m_MainMenuFont = TTF_OpenFont("assets/Fonts/Teletoon.ttf", 30);
-	m_InGameFont = TTF_OpenFont("assets/Fonts/Teletoon.ttf", 20);
 }
 
 Renderer::~Renderer()
@@ -59,9 +53,9 @@ void Renderer::Update()
 
 void Renderer::DrawPiece(Piece& piece)
 {
-	auto pieceColor = piece.GetColor();
-	auto [pieceX, pieceY] = piece.GetPosition();
-	SDL_Rect rect = { pieceX, pieceY, m_PieceSize, m_PieceSize };
+	auto pieceColor			= piece.GetColor();
+	auto [pieceX, pieceY]	= piece.GetPosition();
+	SDL_Rect rect			= { pieceX, pieceY, m_PieceSize, m_PieceSize };
 
 	SDL_RenderCopy(m_Renderer, m_Colors[pieceColor], nullptr, &rect);
 }
@@ -69,16 +63,44 @@ void Renderer::DrawPiece(Piece& piece)
 void Renderer::DrawGrid()
 {
 	SDL_SetRenderDrawColor(m_Renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, m_GridX, (m_GridY + m_GridHeight));
-	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, (m_GridX + m_GridWidth), m_GridY);
-	SDL_RenderDrawLine(m_Renderer, (m_GridX + m_GridWidth), m_GridY, (m_GridX + m_GridWidth), (m_GridY + m_GridHeight));
-	SDL_RenderDrawLine(m_Renderer, m_GridX, (m_GridY + m_GridHeight), (m_GridX + m_GridWidth), (m_GridY + m_GridHeight));
+	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, m_GridX, (m_GridY + m_GridHeight)); // Left Line
+	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, (m_GridX + m_GridWidth), m_GridY); // Top Line
+	SDL_RenderDrawLine(m_Renderer, (m_GridX + m_GridWidth), m_GridY, (m_GridX + m_GridWidth), (m_GridY + m_GridHeight)); // Right Line
+	SDL_RenderDrawLine(m_Renderer, m_GridX, (m_GridY + m_GridHeight), (m_GridX + m_GridWidth), (m_GridY + m_GridHeight)); // Bottom Line
 }
 
-void Renderer::DrawScore()
+void Renderer::DrawScore(Text& scoreText)
 {
-	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, (10 + 250), m_GridY);
-	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, 10, (m_GridY + 100));
-	SDL_RenderDrawLine(m_Renderer, (10 + 250), m_GridY, (10 + 250), (m_GridY + 100));
-	SDL_RenderDrawLine(m_Renderer, 10, (m_GridY + 100), (10 + 250), (m_GridY + 100));
+	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, (10 + 250), m_GridY); // Left Line
+	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, 10, (m_GridY + 100)); // Top Line
+	SDL_RenderDrawLine(m_Renderer, (10 + 250), m_GridY, (10 + 250), (m_GridY + 100)); // Right Line
+	SDL_RenderDrawLine(m_Renderer, 10, (m_GridY + 100), (10 + 250), (m_GridY + 100)); // Bottom Line
+
+	DrawText(scoreText, { 20, m_GridY + 20 }, { m_GridY + 100, m_GridY / 2 });
+}
+
+void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> rectSize)
+{
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
+	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
+	text.SetTexture(fontTexture);
+	SDL_FreeSurface(surfaceMessage);
+
+	auto [positionX, positionY] = position;
+	auto [rectX, rectY] = rectSize;
+	SDL_Rect rect = { positionX, positionY, rectX, rectY };
+
+	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
+}
+
+void Renderer::DrawText(Text& text, int32_t positionX, int32_t positionY, int32_t rectSizeX, int32_t rectSizeY)
+{
+	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
+	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
+	text.SetTexture(fontTexture);
+	SDL_FreeSurface(surfaceMessage);
+
+	SDL_Rect rect = { positionX, positionY, rectSizeX, rectSizeY };
+
+	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
 }

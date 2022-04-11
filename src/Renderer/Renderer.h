@@ -6,6 +6,7 @@
 #include <SDL_ttf.h>
 
 #include "Piece.h"
+#include "Text.h"
 
 class Renderer
 {
@@ -20,7 +21,9 @@ public:
 
 	void DrawPiece(Piece& piece);
 	void DrawGrid();
-	void DrawScore();
+	void DrawScore(Text& scoreText);
+	void DrawText(Text& text, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> rectSize);
+	void DrawText(Text& text, int32_t positionX, int32_t positionY, int32_t rectSizeX, int32_t rectSizeY);
 
 	inline const int32_t& GetPieceSize() const { return m_PieceSize; }
 
@@ -38,9 +41,5 @@ private:
 
 	// pieces colors textures
 	std::unordered_map<PieceColor, SDL_Texture*> m_Colors;
-
-	// Font
-	TTF_Font* m_MainMenuFont	= nullptr;
-	TTF_Font* m_InGameFont	= nullptr;
 };
 

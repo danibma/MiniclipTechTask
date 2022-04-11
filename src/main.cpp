@@ -70,7 +70,6 @@ int main(int argc, char* args[])
 	if (s_MusicEnabled)
 		backgroundMusic.Play(true);
 
-
 	// Initialize Renderer
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -80,7 +79,7 @@ int main(int argc, char* args[])
 	Piece redPiece(PieceColor::Red, 200, 200);
 
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
-	Text scoreText("Score: 0", teletoonInGame);
+	Text scoreText(renderer, "Score: 0", teletoonInGame);
 
 	while (s_IsRunning)
 	{
@@ -100,30 +99,23 @@ int main(int argc, char* args[])
 				if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 				{
 					PieceMoveSound.Play();
-					printf("todo: move left key pressed!\n");
 				}
 				else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
 				{
 					PieceMoveSound.Play();
-					printf("todo: move right key pressed!\n");
 				}
 				else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
 				{
 					PieceMoveSound.Play();
-					printf("todo: move down key pressed!\n");
 				}
 				else if (event.key.keysym.sym == SDLK_z)
 				{
-
-					printf("todo: rotate left key pressed!\n");
+					redPiece.RotateLeft();
 				}
 				else if (event.key.keysym.sym == SDLK_x)
 				{
-
-					printf("todo: rotate right key pressed!\n");
+					redPiece.RotateRight();
 				}
-
-				scoreText.SetText("Score: 100");
 			}
 		}
 

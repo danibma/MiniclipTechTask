@@ -25,13 +25,14 @@ public:
 	void DrawText(Text& text, std::pair<int32_t, int32_t> position);
 	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 
-	inline const int32_t& GetPieceSize() const { return m_PieceSize; }
+	inline static const int32_t& GetPieceSize() { return m_PieceSize; }
+	inline SDL_Renderer* GetSDLRenderer() const { return m_Renderer; }
 
 private:
 	SDL_Renderer* m_Renderer;
 
 	// Pieces dimensions
-	const int32_t m_PieceSize = 32;
+	static const int32_t m_PieceSize = 32;
 
 	// Grid dimensions
 	uint32_t m_GridWidth	= 0;

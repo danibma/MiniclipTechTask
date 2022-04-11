@@ -12,3 +12,15 @@ Piece::Piece(PieceColor color, int32_t spawnPositionX, int32_t spawnPositionY)
 Piece::~Piece()
 {
 }
+
+void Piece::RotateLeft()
+{
+	m_PositionX -= Renderer::GetPieceSize();
+	m_PositionY -= Renderer::GetPieceSize();
+}
+
+void Piece::RotateRight()
+{
+	m_PositionX += Renderer::GetPieceSize();
+	m_PositionY += Renderer::GetPieceSize();
+}

@@ -21,6 +21,9 @@ public:
 	inline const PieceColor& GetColor() const { return m_Color; }
 	inline const std::pair<int32_t, int32_t> GetPosition() const { return { m_PositionX, m_PositionY }; }
 
+	void RotateLeft();
+	void RotateRight();
+
 private:
 	PieceColor m_Color;
 	int32_t m_PositionX = 0;

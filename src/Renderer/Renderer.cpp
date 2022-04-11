@@ -81,25 +81,31 @@ void Renderer::DrawScore(Text& scoreText)
 
 void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position)
 {
-	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
-	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
-	text.SetTexture(fontTexture);
-	SDL_FreeSurface(surfaceMessage);
+	if (text.GetTexture())
+	{
+		auto [positionX, positionY] = position;
+		auto [sizeX, sizeY] = text.GetRectSize();
+		SDL_Rect rect = { positionX, positionY, sizeX, sizeY };
 
-	auto [positionX, positionY] = position;
-	SDL_Rect rect = { positionX, positionY, surfaceMessage->w, surfaceMessage->h };
-
-	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
+		SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
+	}
+	else
+	{
+		printf("Text texture is null, dont forget to create the font texture!");
+	}
 }
 
 void Renderer::DrawText(Text& text, int32_t positionX, int32_t positionY)
 {
-	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(text.GetFont().GetTTFFont(), text.GetText().c_str(), text.GetColor());
-	auto fontTexture = SDL_CreateTextureFromSurface(m_Renderer, surfaceMessage);
-	text.SetTexture(fontTexture);
-	SDL_FreeSurface(surfaceMessage);
+	if (text.GetTexture())
+	{
+		auto [sizeX, sizeY] = text.GetRectSize();
+		SDL_Rect rect = { positionX, positionY, sizeX, sizeY };
 
-	SDL_Rect rect = { positionX, positionY, surfaceMessage->w, surfaceMessage->h };
-
-	SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
+		SDL_RenderCopy(m_Renderer, text.GetTexture(), nullptr, &rect);
+	}
+	else
+	{
+		printf("Text texture is null, dont forget to create the font texture!");
+	}
 }

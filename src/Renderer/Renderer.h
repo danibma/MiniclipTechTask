@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SDL.h>
+#include <SDL_ttf.h>
+
 #include "Piece.h"
 
 class Renderer
@@ -33,9 +35,13 @@ private:
 	uint32_t m_GridY		= 0;
 
 	// pieces colors textures
-	SDL_Texture* m_PieceGreen;
-	SDL_Texture* m_PieceLightBlue;
-	SDL_Texture* m_PieceOrange;
-	SDL_Texture* m_PieceRed;
+	SDL_Texture* m_PieceGreen = nullptr;
+	SDL_Texture* m_PieceLightBlue = nullptr;
+	SDL_Texture* m_PieceOrange = nullptr;
+	SDL_Texture* m_PieceRed = nullptr;
+
+	// Font
+	TTF_Font* m_MainMenuFont	= nullptr;
+	TTF_Font* m_InGameFont	= nullptr;
 };
 

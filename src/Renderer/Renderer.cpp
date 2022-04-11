@@ -7,6 +7,9 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 	if (!m_Renderer)
 		printf("Renderer could not be initialized: %s\n", SDL_GetError());
 
+	if (TTF_Init() < 0)
+		printf("SDL_TTF could not be initialized: %s\n", SDL_GetError());
+
 	// Grid dimensions
 	m_GridWidth		=  8 * m_PieceSize;
 	m_GridHeight	= 16 * m_PieceSize;
@@ -29,6 +32,12 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 	surface = SDL_LoadBMP("assets/red.bmp");
 	m_PieceRed = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
+
+	// Load main menu font and in game font
+	// it is the same font, but with different sizes
+	// these are going to be the most used so we load them up before runtime
+	m_MainMenuFont = TTF_OpenFont("assets/Fonts/Teletoon.ttf", 30);
+	m_InGameFont = TTF_OpenFont("assets/Fonts/Teletoon.ttf", 20);
 }
 
 Renderer::~Renderer()

@@ -129,10 +129,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y "$(SolutionDir)external\sdl\SDL2.dll" "$(SolutionDir)bin\$(Configuration)\"</Command>
+      <Command>xcopy /Y "$(SolutionDir)external\sdl\*.dll" "$(SolutionDir)bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -150,18 +150,22 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_ttf.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /Y "$(SolutionDir)external\sdl\SDL2.dll" "$(SolutionDir)bin\$(Configuration)\"</Command>
+      <Command>xcopy /Y "$(SolutionDir)external\sdl\*.dll" "$(SolutionDir)bin\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Sound\SoundEffect.cpp" />
+    <ClCompile Include="src\Sound\Music.cpp" />
     <ClCompile Include="src\Renderer\Piece.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Sound\SoundEffect.h" />
+    <ClInclude Include="src\Sound\Music.h" />
     <ClInclude Include="src\Renderer\Piece.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
   </ItemGroup>

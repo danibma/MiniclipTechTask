@@ -1,12 +1,17 @@
 #include <iostream>
+
 #include <SDL.h>
+#include <SDL_mixer.h>
+
 #include "Renderer/Renderer.h"
 #include "Renderer/Piece.h"
+#include "Sound/Music.h"
+#include "Sound/SoundEffect.h"
 
 // Game Requirements
 // - The game is played on a 8x16 grid -
 // - Objective of the game is to match same colored pieces
-// - There should be 4 different colored pieces
+// - There should be 4 different colored pieces -
 // - Forming groups of 4 + pieces, in L, T, square or other fully connecting shapes destroys the pieces
 // - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair
 // - Pairs are spawned above the top of the grid, dropping down until they are placed
@@ -27,14 +32,15 @@
 constexpr uint32_t SCREEN_WIDTH = 960;
 constexpr uint32_t SCREEN_HEIGHT = 720;
 
-static bool s_IsRunning = true;
+static bool s_IsRunning		= true;
+static bool s_MusicEnabled	= true;
 
 Renderer renderer;
 
 int main(int argc, char* args[])
 {
 	//The window we'll be rendering to
-	SDL_Window* window = NULL;
+	SDL_Window* window = nullptr;
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
@@ -48,6 +54,24 @@ int main(int argc, char* args[])
 		return 0;
 	}
 
+	//Initialize SDL_mixer 
+	if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096) == -1)
+	{
+		printf("SDL_mixer could not be initialized: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	Music backgroundMusic("assets/sounds/music/background_music.mp3");
+	Music GameOverMusic("assets/sounds/music/gameover.mp3");
+	SoundEffect PieceMoveSound("assets/sounds/sound_effects/piece_move.mp3");
+	SoundEffect PieceDropSound("assets/sounds/sound_effects/piece_drop.mp3");
+	SoundEffect PieceGroupRemoveSound("assets/sounds/sound_effects/piece_group_remove.mp3");
+
+	if (s_MusicEnabled)
+		backgroundMusic.Play(true);
+
+
+	// Initialize Renderer
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	Piece greenPiece(PieceColor::Green, 50, 50);
@@ -80,6 +104,8 @@ int main(int argc, char* args[])
 					printf("todo: rotate left key pressed!\n");
 				else if (event.key.keysym.sym == SDLK_x)
 					printf("todo: rotate right key pressed!\n");
+
+				GameOverMusic.Play(false);
 			}
 		}
 

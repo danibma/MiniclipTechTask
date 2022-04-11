@@ -21,10 +21,10 @@
 //		- Moving the pair sideways
 //		- Rotating the pair in 90 degree angles(left or right)
 //		- Making the pair fall faster
-// - Once the pair is placed
-// - The player can no longer move the pair
-// - The pieces will unpair and each of them will fall to the lowest position it can reach
-// - Once there is no movement(all pieces placed), matches are validatedand removed from the grid
+// - Once the pair is placed:
+//		- The player can no longer move the pair
+//		- The pieces will unpair and each of them will fall to the lowest position it can reach
+//		- Once there is no movement(all pieces placed), matches are validatedand removed from the grid
 // - The next pair will be spawned once all matches are cleared
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
 
@@ -33,7 +33,7 @@ constexpr uint32_t SCREEN_WIDTH = 960;
 constexpr uint32_t SCREEN_HEIGHT = 720;
 
 static bool s_IsRunning		= true;
-static bool s_MusicEnabled	= true;
+static bool s_MusicEnabled	= false;
 
 Renderer renderer;
 
@@ -95,17 +95,30 @@ int main(int argc, char* args[])
 				// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 				// Keybinds
 				if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+				{
+					PieceMoveSound.Play();
 					printf("todo: move left key pressed!\n");
+				}
 				else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
+				{
+					PieceMoveSound.Play();
 					printf("todo: move right key pressed!\n");
+				}
 				else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
+				{
+					PieceMoveSound.Play();
 					printf("todo: move down key pressed!\n");
+				}
 				else if (event.key.keysym.sym == SDLK_z)
-					printf("todo: rotate left key pressed!\n");
-				else if (event.key.keysym.sym == SDLK_x)
-					printf("todo: rotate right key pressed!\n");
+				{
 
-				GameOverMusic.Play(false);
+					printf("todo: rotate left key pressed!\n");
+				}
+				else if (event.key.keysym.sym == SDLK_x)
+				{
+
+					printf("todo: rotate right key pressed!\n");
+				}
 			}
 		}
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <SDL.h>
 #include <SDL_ttf.h>
 
@@ -35,10 +37,7 @@ private:
 	uint32_t m_GridY		= 0;
 
 	// pieces colors textures
-	SDL_Texture* m_PieceGreen = nullptr;
-	SDL_Texture* m_PieceLightBlue = nullptr;
-	SDL_Texture* m_PieceOrange = nullptr;
-	SDL_Texture* m_PieceRed = nullptr;
+	std::unordered_map<PieceColor, SDL_Texture*> m_Colors;
 
 	// Font
 	TTF_Font* m_MainMenuFont	= nullptr;

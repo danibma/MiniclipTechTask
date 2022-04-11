@@ -16,21 +16,21 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 	m_GridX			= (screenWidth / 2) -  (m_GridWidth / 2);
 	m_GridY			= (screenHeight / 2) - (m_GridHeight / 2);
 
-	// Load every color texture
+	// Load colors respective texture
 	SDL_Surface* surface = SDL_LoadBMP("assets/green.bmp");
-	m_PieceGreen = SDL_CreateTextureFromSurface(m_Renderer, surface);
+	m_Colors[PieceColor::Green] = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
 
 	surface = SDL_LoadBMP("assets/lightblue.bmp");
-	m_PieceLightBlue = SDL_CreateTextureFromSurface(m_Renderer, surface);
+	m_Colors[PieceColor::LightBlue] = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
 
 	surface = SDL_LoadBMP("assets/orange.bmp");
-	m_PieceOrange = SDL_CreateTextureFromSurface(m_Renderer, surface);
+	m_Colors[PieceColor::Orange] = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
 
 	surface = SDL_LoadBMP("assets/red.bmp");
-	m_PieceRed = SDL_CreateTextureFromSurface(m_Renderer, surface);
+	m_Colors[PieceColor::Red] = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
 
 	// Load main menu font and in game font
@@ -59,27 +59,11 @@ void Renderer::Update()
 
 void Renderer::DrawPiece(Piece& piece)
 {
+	auto pieceColor = piece.GetColor();
 	auto [pieceX, pieceY] = piece.GetPosition();
 	SDL_Rect rect = { pieceX, pieceY, m_PieceSize, m_PieceSize };
 
-	switch (piece.GetColor())
-	{
-	case PieceColor::Green:
-		SDL_RenderCopy(m_Renderer, m_PieceGreen, nullptr, &rect);
-	break;
-
-	case PieceColor::LightBlue:
-		SDL_RenderCopy(m_Renderer, m_PieceLightBlue, nullptr, &rect);
-		break;
-
-	case PieceColor::Orange:
-		SDL_RenderCopy(m_Renderer, m_PieceOrange, nullptr, &rect);
-		break;
-	case PieceColor::Red:
-		SDL_RenderCopy(m_Renderer, m_PieceRed, nullptr, &rect);
-		break;
-	}
-	
+	SDL_RenderCopy(m_Renderer, m_Colors[pieceColor], nullptr, &rect);
 }
 
 void Renderer::DrawGrid()

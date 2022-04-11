@@ -75,8 +75,8 @@ int main(int argc, char* args[])
 
 	Piece greenPiece(PieceColor::Green, 50, 50);
 	Piece lightBluePiece(PieceColor::LightBlue, 100, 100);
-	Piece orangePiece(PieceColor::Orange, 150, 150);
-	Piece redPiece(PieceColor::Red, 200, 200);
+	Piece orangePiece(PieceColor::Orange, 250, 250);
+	Piece redPiece(PieceColor::Red, 250 - Renderer::GetPieceSize(), 250);
 
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
 	Text scoreText(renderer, "Score: 0", teletoonInGame);

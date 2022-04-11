@@ -36,7 +36,16 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 
 Renderer::~Renderer()
 {
+	for (const auto& texture : m_Colors)
+	{
+		SDL_DestroyTexture(texture.second);
+	}
+
+	m_Colors.clear();
+
 	SDL_DestroyRenderer(m_Renderer);
+
+	TTF_Quit();
 }
 
 void Renderer::Clear()

@@ -2,8 +2,7 @@
 
 #include "Renderer.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <algorithm>
 
 #define ToRadians(x) (x * (M_PI / 180))
 
@@ -18,30 +17,34 @@ Piece::~Piece()
 {
 }
 
-void Piece::RotateLeft()
+void Piece::Rotate(float angle, const int32_t centerX, const int32_t centerY)
 {
-	float angle = ToRadians(90.0f);
+	float angleInRadians = ToRadians(angle);
 
-	int32_t centerX = 250.0f;
-	int32_t centerY = 250.0f;
-
-	auto x = cos(angle) * (m_PositionX - centerX) - sin(angle) * (m_PositionY - centerY) + centerX;
-	auto y = sin(angle) * (m_PositionX - centerX) + cos(angle) * (m_PositionY - centerY) + centerY;
+	float x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
+	float y = sin(angleInRadians) * (m_PositionX - centerX) + cos(angleInRadians) * (m_PositionY - centerY) + centerY;
 
 	m_PositionX = x;
 	m_PositionY = y;
 }
 
-void Piece::RotateRight()
+void Piece::Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint)
 {
-	float angle = ToRadians(-90.0f);
+	float angleInRadians = ToRadians(angle);
 
-	int32_t centerX = 250.0f;
-	int32_t centerY = 250.0f;
+	auto [centerX, centerY] = centerPoint;
 
-	auto x = cos(angle) * (m_PositionX - centerX) - sin(angle) * (m_PositionY - centerY) + centerX;
-	auto y = sin(angle) * (m_PositionX - centerX) + cos(angle) * (m_PositionY - centerY) + centerY;
+	float x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
+	float y = sin(angleInRadians) * (m_PositionX - centerX) + cos(angleInRadians) * (m_PositionY - centerY) + centerY;
 
 	m_PositionX = x;
 	m_PositionY = y;
+}
+
+void Piece::Move(float x, float y)
+{
+	x = std::clamp(x, -1.0f, 1.0f);
+
+	m_PositionX += (x * Renderer::GetPieceSize());
+	m_PositionY += (y * Renderer::GetPieceSize());
 }

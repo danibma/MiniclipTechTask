@@ -18,9 +18,9 @@
 // - The pair is considered placed when any of the pieces of the pair cannot be moved further down
 // - The game is lost if it is not possible to place the pair within the grid
 // - The player controls the pair’s movement by :
-//		- Moving the pair sideways
-//		- Rotating the pair in 90 degree angles(left or right)
-//		- Making the pair fall faster
+//		- Moving the pair sideways -
+//		- Rotating the pair in 90 degree angles(left or right) -
+//		- Making the pair fall faster -
 // - Once the pair is placed:
 //		- The player can no longer move the pair
 //		- The pieces will unpair and each of them will fall to the lowest position it can reach
@@ -99,22 +99,30 @@ int main(int argc, char* args[])
 				if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 				{
 					PieceMoveSound.Play();
+					redPiece.Move(-1, 0);
+					orangePiece.Move(-1, 0);
 				}
 				else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
 				{
 					PieceMoveSound.Play();
+					redPiece.Move(1, 0);
+					orangePiece.Move(1, 0);
 				}
 				else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
 				{
 					PieceMoveSound.Play();
+					redPiece.Move(0, 1);
+					orangePiece.Move(0, 1);
 				}
 				else if (event.key.keysym.sym == SDLK_z)
 				{
-					redPiece.RotateLeft();
+					PieceMoveSound.Play();
+					redPiece.Rotate(-90.0f, orangePiece.GetPosition());
 				}
 				else if (event.key.keysym.sym == SDLK_x)
 				{
-					redPiece.RotateRight();
+					PieceMoveSound.Play();
+					redPiece.Rotate(90.0f, orangePiece.GetPosition());
 				}
 			}
 		}

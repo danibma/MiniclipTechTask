@@ -21,8 +21,11 @@ public:
 	inline const PieceColor& GetColor() const { return m_Color; }
 	inline const std::pair<int32_t, int32_t> GetPosition() const { return { m_PositionX, m_PositionY }; }
 
-	void RotateLeft();
-	void RotateRight();
+	void Rotate(float angle, const int32_t centerX, const int32_t centerY);
+	void Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint);
+
+	// Choose in which axis the piece will move
+	void Move(float x, float y);
 
 private:
 	PieceColor m_Color;

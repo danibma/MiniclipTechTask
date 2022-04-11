@@ -1,5 +1,7 @@
 #include <iostream>
 #include <SDL.h>
+#include "Renderer/Renderer.h"
+#include "Renderer/Piece.h"
 
 // Game Requirements
 // - The game is played on a 8x16 grid -
@@ -22,27 +24,17 @@
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
 
 //Screen dimension constants
-constexpr int32_t SCREEN_WIDTH = 960;
-constexpr int32_t SCREEN_HEIGHT = 720;
-
-// Pieces dimensions
-constexpr int32_t PIECE_SIZE = 32;
-
-// Grid dimensions
-constexpr int32_t GRID_WIDTH   =  8 * PIECE_SIZE;
-constexpr int32_t GRID_HEIGHT  = 16 * PIECE_SIZE;
-constexpr int32_t GRID_X       = (SCREEN_WIDTH  / 2) - (GRID_WIDTH  / 2);
-constexpr int32_t GRID_Y	   = (SCREEN_HEIGHT / 2) - (GRID_HEIGHT / 2);
+constexpr uint32_t SCREEN_WIDTH = 960;
+constexpr uint32_t SCREEN_HEIGHT = 720;
 
 static bool s_IsRunning = true;
+
+Renderer renderer;
 
 int main(int argc, char* args[])
 {
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
-
-	//The surface contained by the window
-	SDL_Surface* screenSurface = NULL;
 
 	//Initialize SDL
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
@@ -56,9 +48,12 @@ int main(int argc, char* args[])
 		return 0;
 	}
 
-	auto renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	if (!renderer)
-		printf("Renderer could not be initialized: %s\n", SDL_GetError());
+	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	Piece greenPiece(PieceColor::Green, 50, 50);
+	Piece lightBluePiece(PieceColor::LightBlue, 100, 100);
+	Piece orangePiece(PieceColor::Orange, 150, 150);
+	Piece redPiece(PieceColor::Red, 200, 200);
 
 	while (s_IsRunning)
 	{
@@ -89,25 +84,23 @@ int main(int argc, char* args[])
 		}
 
 		// Clear screen
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
+		renderer.Clear();
 
 		// Draw
 		// Draw Grid
-		SDL_SetRenderDrawColor(renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
-		SDL_RenderDrawLine(renderer, GRID_X, GRID_Y, GRID_X, (GRID_Y + GRID_HEIGHT));
-		SDL_RenderDrawLine(renderer, GRID_X, GRID_Y, (GRID_X + GRID_WIDTH), GRID_Y);
-		SDL_RenderDrawLine(renderer, (GRID_X + GRID_WIDTH), GRID_Y, (GRID_X + GRID_WIDTH), (GRID_Y + GRID_HEIGHT));
-		SDL_RenderDrawLine(renderer, GRID_X, (GRID_Y + GRID_HEIGHT), (GRID_X + GRID_WIDTH), (GRID_Y + GRID_HEIGHT));
+		renderer.DrawGrid();
 
 		// Draw score lines
-		SDL_RenderDrawLine(renderer, 10, GRID_Y, (10 + 250), GRID_Y);
-		SDL_RenderDrawLine(renderer, 10, GRID_Y, 10, (GRID_Y + 100));
-		SDL_RenderDrawLine(renderer, (10 + 250), GRID_Y, (10 + 250), (GRID_Y + 100));
-		SDL_RenderDrawLine(renderer, 10, (GRID_Y + 100), (10 + 250), (GRID_Y + 100));
+		renderer.DrawScore();
+
+		// Draw piece
+		renderer.DrawPiece(greenPiece);
+		renderer.DrawPiece(lightBluePiece);
+		renderer.DrawPiece(orangePiece);
+		renderer.DrawPiece(redPiece);
 
 		// Present
-		SDL_RenderPresent(renderer);
+		renderer.Update();
 	}
 	
 	//Destroy window

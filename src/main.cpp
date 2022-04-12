@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 
 #include <SDL.h>
 #include <SDL_mixer.h>
@@ -11,18 +11,18 @@
 #include "Sound/SoundEffect.h"
 
 // Game Requirements
-// - The game is played on a 8x16 grid -
+// - The game is played on a 8x16 grid ✅
 // - Objective of the game is to match same colored pieces
-// - There should be 4 different colored pieces -
+// - There should be 4 different colored pieces ✅
 // - Forming groups of 4 + pieces, in L, T, square or other fully connecting shapes destroys the pieces
-// - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair
-// - Pairs are spawned above the top of the grid, dropping down until they are placed
+// - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair ✅
+// - Pairs are spawned above the top of the grid, dropping down until they are placed ✅
 // - The pair is considered placed when any of the pieces of the pair cannot be moved further down
 // - The game is lost if it is not possible to place the pair within the grid
-// - The player controls the pair�s movement by :
-//		- Moving the pair sideways -
-//		- Rotating the pair in 90 degree angles(left or right) -
-//		- Making the pair fall faster -
+// - The player controls the pair’s movement by :
+//		- Moving the pair sideways ✅
+//		- Rotating the pair in 90 degree angles(left or right) ✅
+//		- Making the pair fall faster ✅
 // - Once the pair is placed:
 //		- The player can no longer move the pair
 //		- The pieces will unpair and each of them will fall to the lowest position it can reach
@@ -70,12 +70,12 @@ void SpawnNewPair()
 	uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
 
 	// Left piece
-	Piece leftPiece(Utils::IntToPieceColor(color), positionX, gridPositionY);
+	Piece leftPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
 	spawnPieces["left"] = leftPiece;
 
 	// Right piece
 	color = dist(mt);
-	Piece rightPiece(Utils::IntToPieceColor(color), positionX + PIECE_SIZE, gridPositionY);
+	Piece rightPiece(Utils::IntToPieceColor(color), positionX + PIECE_SIZE, gridPositionY - PIECE_SIZE);
 	spawnPieces["right"] = rightPiece;
 }
 
@@ -224,8 +224,14 @@ int main(int argc, char* args[])
 
 				timeInGame = 0;
 			}
+
 			for (auto& piece : spawnPieces)
-				renderer.DrawPiece(piece.second);
+			{
+				// Only render the spawn pieces when they are inside the grid,
+				// don't render them when they are above it
+				if (piece.second.GetPosition().second >= gridPositionY)
+					renderer.DrawPiece(piece.second);
+			}
 
 			// Present
 			renderer.Update();

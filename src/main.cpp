@@ -28,6 +28,8 @@
 // - The next pair will be spawned once all matches are cleared
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
 
+#define MAX_FRAMERATE 60
+
 //Screen dimension constants
 constexpr uint32_t SCREEN_WIDTH = 960;
 constexpr uint32_t SCREEN_HEIGHT = 720;
@@ -36,6 +38,14 @@ static bool s_IsRunning		= true;
 static bool s_MusicEnabled	= false;
 
 Renderer renderer;
+
+std::vector<Piece> pieces;
+std::unordered_map<const char*, Piece> spawnPieces;
+
+void SpawnNewPair()
+{
+
+}
 
 int main(int argc, char* args[])
 {
@@ -73,78 +83,134 @@ int main(int argc, char* args[])
 	// Initialize Renderer
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	Piece greenPiece(PieceColor::Green, 50, 50);
-	Piece lightBluePiece(PieceColor::LightBlue, 100, 100);
-	Piece orangePiece(PieceColor::Orange, 250, 250);
-	Piece redPiece(PieceColor::Red, 250 - Renderer::GetPieceSize(), 250);
+	Piece orangePiece(PieceColor::Orange, 384, 104);
+	Piece redPiece(PieceColor::Red, 384 - PIECE_SIZE, 104);
+
+	spawnPieces["right"] = orangePiece;
+	spawnPieces["left"] = redPiece;
 
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
 	Text scoreText(renderer, "Score: 0", teletoonInGame);
 
+	//Timer
+	float lastFrame = 0;
+	float time;
+	float timestep;
+	float maxPeriod = (float)1000 / MAX_FRAMERATE;
+	int timeInGame = 0;
+
+	// Spawn the first pair of pieces
+	SpawnNewPair();
+
+	// Grid Values
+	// Grid dimensions
+	auto gridWidth = 8 * PIECE_SIZE;
+	auto gridHeight = 16 * PIECE_SIZE;
+	auto gridPositionX = (SCREEN_WIDTH / 2) - (gridWidth / 2);
+	auto gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
+
+	// This way the pieces don't stay on top of the lines
+	gridPositionX--;
+	gridPositionY--;
+	gridWidth++;
+	gridHeight++;
+
 	while (s_IsRunning)
 	{
-		SDL_Event event;
-		if (SDL_PollEvent(&event))
+		time = (float)SDL_GetTicks();
+		timestep = time - lastFrame;
+
+		if (timestep >= maxPeriod)
 		{
-			if (event.type == SDL_QUIT)
-				s_IsRunning = false;
+			// NOTE(Daniel): Dont run this while the game is over and the game is on main menu
+			timeInGame++;
 
-			if (event.type == SDL_MOUSEBUTTONDOWN)
-				printf("TODO: mouse click!\n");
+			lastFrame = time;
 
-			if (event.type == SDL_KEYDOWN)
+			SDL_Event event;
+			if (SDL_PollEvent(&event))
 			{
-				// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
-				// Keybinds
-				if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+				if (event.type == SDL_QUIT)
+					s_IsRunning = false;
+
+				if (event.type == SDL_MOUSEBUTTONDOWN)
+					printf("TODO: mouse click!\n");
+
+				if (event.type == SDL_KEYDOWN)
 				{
-					PieceMoveSound.Play();
-					redPiece.Move(-1, 0);
-					orangePiece.Move(-1, 0);
-				}
-				else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
-				{
-					PieceMoveSound.Play();
-					redPiece.Move(1, 0);
-					orangePiece.Move(1, 0);
-				}
-				else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
-				{
-					PieceMoveSound.Play();
-					redPiece.Move(0, 1);
-					orangePiece.Move(0, 1);
-				}
-				else if (event.key.keysym.sym == SDLK_z)
-				{
-					PieceMoveSound.Play();
-					redPiece.Rotate(-90.0f, orangePiece.GetPosition());
-				}
-				else if (event.key.keysym.sym == SDLK_x)
-				{
-					PieceMoveSound.Play();
-					redPiece.Rotate(90.0f, orangePiece.GetPosition());
+					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
+					// Keybinds
+					if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+					{
+						PieceMoveSound.Play();
+						spawnPieces["left"].Move(-1, 0);
+						spawnPieces["right"].Move(-1, 0);
+					}
+					else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
+					{
+						PieceMoveSound.Play();
+						spawnPieces["left"].Move(1, 0);
+						spawnPieces["right"].Move(1, 0);
+					}
+					else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
+					{
+						PieceMoveSound.Play();
+						spawnPieces["left"].Move(0, 1);
+						spawnPieces["right"].Move(0, 1);
+					}
+					else if (event.key.keysym.sym == SDLK_z)
+					{
+						PieceMoveSound.Play();
+						spawnPieces["right"].Rotate(-90.0f, spawnPieces["left"].GetPosition());
+					}
+					else if (event.key.keysym.sym == SDLK_x)
+					{
+						PieceMoveSound.Play();
+						spawnPieces["right"].Rotate(90.0f, spawnPieces["left"].GetPosition());
+					}
+					else if (event.key.keysym.sym == SDLK_SPACE) // NOTE: Tests ONLY
+					{
+						SpawnNewPair();
+					}
 				}
 			}
+
+			// Clear screen
+			renderer.Clear();
+
+			// Draw
+			// Draw Grid
+			SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 255, 255, 255, SDL_ALPHA_OPAQUE);
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, gridPositionX, (gridPositionY + gridHeight)); // Left Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, (gridPositionX + gridWidth), gridPositionY); // Top Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (gridPositionX + gridWidth), gridPositionY, (gridPositionX + gridWidth), (gridPositionY + gridHeight)); // Right Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, (gridPositionY + gridHeight), (gridPositionX + gridWidth), (gridPositionY + gridHeight)); // Bottom Line
+
+			// Draw score
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, (10 + 250), gridPositionY); // Left Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, 10, (gridPositionY + 100)); // Top Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (10 + 250), gridPositionY, (10 + 250), (gridPositionY + 100)); // Right Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, (gridPositionY + 100), (10 + 250), (gridPositionY + 100)); // Bottom Line
+			renderer.DrawText(scoreText, { 25, gridPositionY + 20 });
+
+			// Draw pieces
+			for (auto& piece : pieces)
+				renderer.DrawPiece(piece);
+
+			// See if the time that has passed is equal to MAX_FRAMERATE(1s) times the amount of seconds to wait to move
+			if (timeInGame == (MAX_FRAMERATE * 1))
+			{
+				for (auto& piece : spawnPieces)
+					piece.second.Move(0, 1);
+
+				timeInGame = 0;
+			}
+			for (auto& piece : spawnPieces)
+				renderer.DrawPiece(piece.second);
+
+			// Present
+			renderer.Update();
 		}
-
-		// Clear screen
-		renderer.Clear();
-
-		// Draw
-		// Draw Grid
-		renderer.DrawGrid();
-
-		// Draw score lines
-		renderer.DrawScore(scoreText);
-
-		// Draw piece
-		renderer.DrawPiece(greenPiece);
-		renderer.DrawPiece(lightBluePiece);
-		renderer.DrawPiece(orangePiece);
-		renderer.DrawPiece(redPiece);
-
-		// Present
-		renderer.Update();
 	}
 	
 	//Destroy window

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include <stdio.h>
 
+
 void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHeight)
 {
 	m_Renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -9,12 +10,6 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 
 	if (TTF_Init() < 0)
 		printf("SDL_TTF could not be initialized: %s\n", SDL_GetError());
-
-	// Grid dimensions
-	m_GridWidth		=  8 * m_PieceSize;
-	m_GridHeight	= 16 * m_PieceSize;
-	m_GridX			= (screenWidth / 2) -  (m_GridWidth / 2);
-	m_GridY			= (screenHeight / 2) - (m_GridHeight / 2);
 
 	// Load colors respective texture
 	SDL_Surface* surface = SDL_LoadBMP("assets/green.bmp");
@@ -62,30 +57,12 @@ void Renderer::Update()
 
 void Renderer::DrawPiece(Piece& piece)
 {
-	auto pieceColor			= piece.GetColor();
-	auto [pieceX, pieceY]	= piece.GetPosition();
-	SDL_Rect rect			= { pieceX, pieceY, m_PieceSize, m_PieceSize };
+	auto pieceColor = piece.GetColor();
+	auto [pieceX, pieceY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
+	SDL_Rect rect = { pieceX, pieceY, sizeX, sizeY};
 
 	SDL_RenderCopy(m_Renderer, m_Colors[pieceColor], nullptr, &rect);
-}
-
-void Renderer::DrawGrid()
-{
-	SDL_SetRenderDrawColor(m_Renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, m_GridX, (m_GridY + m_GridHeight)); // Left Line
-	SDL_RenderDrawLine(m_Renderer, m_GridX, m_GridY, (m_GridX + m_GridWidth), m_GridY); // Top Line
-	SDL_RenderDrawLine(m_Renderer, (m_GridX + m_GridWidth), m_GridY, (m_GridX + m_GridWidth), (m_GridY + m_GridHeight)); // Right Line
-	SDL_RenderDrawLine(m_Renderer, m_GridX, (m_GridY + m_GridHeight), (m_GridX + m_GridWidth), (m_GridY + m_GridHeight)); // Bottom Line
-}
-
-void Renderer::DrawScore(Text& scoreText)
-{
-	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, (10 + 250), m_GridY); // Left Line
-	SDL_RenderDrawLine(m_Renderer, 10, m_GridY, 10, (m_GridY + 100)); // Top Line
-	SDL_RenderDrawLine(m_Renderer, (10 + 250), m_GridY, (10 + 250), (m_GridY + 100)); // Right Line
-	SDL_RenderDrawLine(m_Renderer, 10, (m_GridY + 100), (10 + 250), (m_GridY + 100)); // Bottom Line
-
-	DrawText(scoreText, { 25, m_GridY + 20 });
 }
 
 void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position)

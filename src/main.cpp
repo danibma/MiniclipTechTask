@@ -3,6 +3,8 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 
+#include <random>
+
 #include "Renderer/Renderer.h"
 #include "Renderer/Piece.h"
 #include "Sound/Music.h"
@@ -42,9 +44,39 @@ Renderer renderer;
 std::vector<Piece> pieces;
 std::unordered_map<const char*, Piece> spawnPieces;
 
+// Grid dimensions
+auto gridWidth = 8 * PIECE_SIZE;
+auto gridHeight = 16 * PIECE_SIZE;
+auto gridPositionX = (SCREEN_WIDTH / 2) - (gridWidth / 2);
+auto gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
+
+// Random number engine
+std::random_device rd;
+std::mt19937_64 mt(rd());
+
 void SpawnNewPair()
 {
+	// Generate random number from 0 to 6 which is the number of cells horizontally on the grid,
+	// its 6 because the last cell would be the seventh, but we are spawning a pair of pieces, so the first piece has to spawn on
+	// the sixth, then get the x position to spawn the piece, by multiplying the random number that we got by the PIECE_SIZE 
+	// and adding that up to the gridPositionX
 
+	std::uniform_int_distribution<uint32_t> dist(0, 6);
+	auto cell = dist(mt);
+
+	dist = std::uniform_int_distribution<uint32_t>(1, 4);
+	auto color = dist(mt);
+
+	uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
+
+	// Left piece
+	Piece leftPiece(Utils::IntToPieceColor(color), positionX, gridPositionY);
+	spawnPieces["left"] = leftPiece;
+
+	// Right piece
+	color = dist(mt);
+	Piece rightPiece(Utils::IntToPieceColor(color), positionX + PIECE_SIZE, gridPositionY);
+	spawnPieces["right"] = rightPiece;
 }
 
 int main(int argc, char* args[])
@@ -82,13 +114,7 @@ int main(int argc, char* args[])
 
 	// Initialize Renderer
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	Piece orangePiece(PieceColor::Orange, 384, 104);
-	Piece redPiece(PieceColor::Red, 384 - PIECE_SIZE, 104);
-
-	spawnPieces["right"] = orangePiece;
-	spawnPieces["left"] = redPiece;
-
+	
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
 	Text scoreText(renderer, "Score: 0", teletoonInGame);
 
@@ -99,21 +125,14 @@ int main(int argc, char* args[])
 	float maxPeriod = (float)1000 / MAX_FRAMERATE;
 	int timeInGame = 0;
 
-	// Spawn the first pair of pieces
-	SpawnNewPair();
-
-	// Grid Values
-	// Grid dimensions
-	auto gridWidth = 8 * PIECE_SIZE;
-	auto gridHeight = 16 * PIECE_SIZE;
-	auto gridPositionX = (SCREEN_WIDTH / 2) - (gridWidth / 2);
-	auto gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
-
 	// This way the pieces don't stay on top of the lines
 	gridPositionX--;
 	gridPositionY--;
 	gridWidth++;
 	gridHeight++;
+
+	// Spawn the first pair of pieces
+	SpawnNewPair();
 
 	while (s_IsRunning)
 	{

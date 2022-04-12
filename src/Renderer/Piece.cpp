@@ -19,12 +19,14 @@ Piece::~Piece()
 
 void Piece::SetPosition(int32_t x, int32_t y)
 {
-
+	m_PositionX = x;
+	m_PositionY = y;
 }
 
 void Piece::SetSize(int32_t x, int32_t y)
 {
-
+	m_Width = x;
+	m_Height = y;
 }
 
 void Piece::Rotate(float angle, const int32_t centerX, const int32_t centerY)
@@ -73,13 +75,4 @@ bool Piece::IsCollidingWithPiece(Piece& piece)
 	}
 
 	return false;
-}
-
-bool Piece::IsCollidingWithGrid(int32_t x, int32_t y, int32_t width, int32_t height)
-{
-	if ((m_PositionX + PIECE_SIZE) == (x + width) || m_PositionX == x)
-	{
-		printf("Is Collinding");
-		return true;
-	}
 }

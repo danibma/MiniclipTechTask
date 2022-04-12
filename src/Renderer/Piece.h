@@ -6,7 +6,7 @@
 
 #define PIECE_SIZE 32
 
-enum class PieceColor
+enum class PieceColor : uint32_t
 {
 	None,
 	Green,
@@ -14,6 +14,31 @@ enum class PieceColor
 	Orange,
 	Red
 };
+
+namespace Utils
+{
+	inline PieceColor IntToPieceColor(uint32_t num)
+	{
+		switch (num)
+		{
+		case 1:
+			return PieceColor::Green;
+			break;
+		case 2:
+			return PieceColor::LightBlue;
+			break;
+		case 3:
+			return PieceColor::Orange;
+			break;
+		case 4:
+			return PieceColor::Red;
+			break;
+		default:
+			return PieceColor::None;
+			break;
+		}
+	}
+}
 
 class Piece
 {
@@ -36,7 +61,6 @@ public:
 	void Move(float x, float y);
 
 	bool IsCollidingWithPiece(Piece& piece);
-	bool IsCollidingWithGrid(int32_t x, int32_t y, int32_t width, int32_t height);
 
 private:
 	PieceColor m_Color = PieceColor::None;

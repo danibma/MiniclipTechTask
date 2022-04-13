@@ -75,8 +75,10 @@ public:
 
 	inline const PieceColor& GetColor() const { return m_Color; }
 
-	void Rotate(float angle, const int32_t centerX, const int32_t centerY);
-	void Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint);
+	inline const int32_t GetRotation() const { return m_CurrentRotation; }
+
+	void Rotate(int32_t angle, const int32_t centerX, const int32_t centerY);
+	void Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint);
 
 	/**
 	 * Choose in which axis the piece will move
@@ -111,6 +113,6 @@ private:
 	PieceColor m_Color = PieceColor::None;
 	bool m_IsLocked = false;
 	SoundEffect m_MoveSound;
-
+	int32_t m_CurrentRotation = 0;
 };
 

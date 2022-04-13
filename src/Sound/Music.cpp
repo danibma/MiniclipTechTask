@@ -11,6 +11,7 @@ Music::Music(const char* path)
 
 void Music::Destroy()
 {
+	Pause();
 	Mix_FreeMusic(m_Sound);
 }
 

@@ -11,18 +11,22 @@ Piece::Piece(PieceColor color, int32_t spawnPositionX, int32_t spawnPositionY)
 	m_PositionY = spawnPositionY;
 	m_Width = PIECE_SIZE;
 	m_Height = PIECE_SIZE;
-
 	m_MoveSound = SoundEffect("assets/sounds/sound_effects/piece_move.mp3");
 }
 
 Piece::~Piece()
 {
+	m_MoveSound.Destroy();
 }
 
-void Piece::Rotate(float angle, const int32_t centerX, const int32_t centerY)
+void Piece::Rotate(int32_t angle, const int32_t centerX, const int32_t centerY)
 {
 	if (!m_IsLocked)
 	{
+		m_CurrentRotation += angle;
+		if (m_CurrentRotation % 360 == 0)
+			m_CurrentRotation = 0;
+
 		float angleInRadians = ToRadians(angle);
 
 		float x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
@@ -35,10 +39,12 @@ void Piece::Rotate(float angle, const int32_t centerX, const int32_t centerY)
 	}
 }
 
-void Piece::Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint)
+void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint)
 {
 	if (!m_IsLocked)
 	{
+		m_CurrentRotation += angle;
+
 		float angleInRadians = ToRadians(angle);
 
 		auto [centerX, centerY] = centerPoint;

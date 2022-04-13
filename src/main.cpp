@@ -26,7 +26,7 @@
 // - Once the pair is placed:
 //		- The player can no longer move the pair
 //		- The pieces will unpair and each of them will fall to the lowest position it can reach
-//		- Once there is no movement(all pieces placed), matches are validatedand removed from the grid
+//		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
 // - The next pair will be spawned once all matches are cleared
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
 
@@ -58,12 +58,16 @@ int32_t gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
 std::random_device rd;
 std::mt19937_64 mt(rd());
 
+int timeInGame = 0;
+
 void SpawnNewPair()
 {
 	// Generate random number from 0 to 6 which is the number of cells horizontally on the grid,
 	// its 6 because the last cell would be the seventh, but we are spawning a pair of pieces, so the first piece has to spawn on
 	// the sixth, then get the x position to spawn the piece, by multiplying the random number that we got by the PIECE_SIZE 
 	// and adding that up to the gridPositionX
+
+	timeInGame = 0;
 
 	std::uniform_int_distribution<uint32_t> dist(0, 6);
 	auto cell = dist(mt);
@@ -111,7 +115,6 @@ int main(int argc, char* args[])
 
 	Music backgroundMusic("assets/sounds/music/background_music.mp3");
 	Music GameOverMusic("assets/sounds/music/gameover.mp3");
-	SoundEffect PieceMoveSound("assets/sounds/sound_effects/piece_move.mp3");
 	SoundEffect PieceDropSound("assets/sounds/sound_effects/piece_drop.mp3");
 	SoundEffect PieceGroupRemoveSound("assets/sounds/sound_effects/piece_group_remove.mp3");
 
@@ -131,7 +134,6 @@ int main(int argc, char* args[])
 	float time;
 	float timestep;
 	float maxPeriod = (float)1000 / MAX_FRAMERATE;
-	int timeInGame = 0;
 
 	// Load colors respective texture
 	textureCache[Utils::PieceColorToString(PieceColor::Green)] = renderer.CreateTexture("assets/green.bmp");
@@ -175,30 +177,33 @@ int main(int argc, char* args[])
 					{
 						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 						{
-							PieceMoveSound.Play();
-							spawnPieces["left"].Move(-1, 0);
-							spawnPieces["right"].Move(-1, 0);
+							if (spawnPieces["left"].IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
+								spawnPieces["right"].IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
+							{
+								spawnPieces["left"].Move(-1, 0);
+								spawnPieces["right"].Move(-1, 0);
+							}
 						}
 						else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
 						{
-							PieceMoveSound.Play();
-							spawnPieces["left"].Move(1, 0);
-							spawnPieces["right"].Move(1, 0);
+							if (spawnPieces["left"].IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
+								spawnPieces["right"].IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
+							{
+								spawnPieces["left"].Move(1, 0);
+								spawnPieces["right"].Move(1, 0);
+							}
 						}
 						else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
 						{
-							PieceMoveSound.Play();
 							spawnPieces["left"].Move(0, 1);
 							spawnPieces["right"].Move(0, 1);
 						}
 						else if (event.key.keysym.sym == SDLK_z)
 						{
-							PieceMoveSound.Play();
 							spawnPieces["right"].Rotate(-90.0f, spawnPieces["left"].GetPosition());
 						}
 						else if (event.key.keysym.sym == SDLK_x)
 						{
-							PieceMoveSound.Play();
 							spawnPieces["right"].Rotate(90.0f, spawnPieces["left"].GetPosition());
 						}
 						else if (event.key.keysym.sym == SDLK_SPACE) // NOTE: Tests ONLY
@@ -216,6 +221,14 @@ int main(int argc, char* args[])
 
 			// Clear screen
 			renderer.Clear();
+
+			// Check if any of the spawned pieces has reached the end of the grid
+			if (spawnPieces["left"].IsCollidingVertically(gridPositionY, gridHeight))
+				spawnPieces["left"].SetLocked(true);
+
+			if (spawnPieces["right"].IsCollidingVertically(gridPositionY, gridHeight))
+				spawnPieces["right"].SetLocked(true);
+
 
 			// Move spawned pieces every 1sec
 			if (timeInGame == (MAX_FRAMERATE * 1))

@@ -6,6 +6,8 @@
 
 #include "Renderer/Renderable.h"
 
+#include "Sound/SoundEffect.h"
+
 #define PIECE_SIZE 32
 
 enum class PieceColor : uint32_t
@@ -76,13 +78,39 @@ public:
 	void Rotate(float angle, const int32_t centerX, const int32_t centerY);
 	void Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint);
 
-	// Choose in which axis the piece will move
+	/**
+	 * Choose in which axis the piece will move
+	 */
 	void Move(float x, float y);
 
+	/**
+	 * Check if a piece is colliding with any type of limit vertically
+	 *
+	 * @param int32_t limitY
+	 * @param int32_t limitHeight
+	 *
+	 * @returns true if it is colliding, false if it isn't
+	 */
+	int8_t IsCollidingVertically(int32_t limitY, int32_t limitHeight);
+
+	/**
+	 * Check if a piece is colliding with any type of limit horizontally
+	 *
+	 * @param int32_t limitX
+	 * @param int32_t limitWidth
+	 *
+	 * @returns -1 if it can't move to the left, 1 if it can't move to the right and 0 if it isn't colliding with any limit
+	 */
+	int8_t IsCollidingHoriontally(int32_t limitX, int32_t limitWidth);
 	bool IsCollidingWithPiece(Piece& piece);
+	inline const bool IsLocked() { return m_IsLocked; }
+
+	inline void SetLocked(bool value) { m_IsLocked = value; }
 
 private:
 	PieceColor m_Color = PieceColor::None;
+	bool m_IsLocked = false;
+	SoundEffect m_MoveSound;
 
 };
 

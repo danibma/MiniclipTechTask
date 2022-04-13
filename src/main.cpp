@@ -6,7 +6,7 @@
 #include <random>
 
 #include "Renderer/Renderer.h"
-#include "Renderer/Piece.h"
+#include "Piece.h"
 #include "Sound/Music.h"
 #include "Sound/SoundEffect.h"
 
@@ -38,17 +38,21 @@ constexpr uint32_t SCREEN_HEIGHT = 720;
 
 static bool s_IsRunning		= true;
 static bool s_MusicEnabled	= false;
+static bool s_IsGamePaused  = false;
 
 Renderer renderer;
 
 std::vector<Piece> pieces;
 std::unordered_map<const char*, Piece> spawnPieces;
 
+// pieces colors textures
+std::unordered_map<const char*, SDL_Texture*> textureCache;
+
 // Grid dimensions
-auto gridWidth = 8 * PIECE_SIZE;
-auto gridHeight = 16 * PIECE_SIZE;
-auto gridPositionX = (SCREEN_WIDTH / 2) - (gridWidth / 2);
-auto gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
+int32_t gridWidth = 8 * PIECE_SIZE;
+int32_t gridHeight = 16 * PIECE_SIZE;
+int32_t gridPositionX = (SCREEN_WIDTH / 2) - (gridWidth / 2);
+int32_t gridPositionY = (SCREEN_HEIGHT / 2) - (gridHeight / 2);
 
 // Random number engine
 std::random_device rd;
@@ -71,11 +75,13 @@ void SpawnNewPair()
 
 	// Left piece
 	Piece leftPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
+	leftPiece.SetTexture(textureCache[Utils::PieceColorToString(leftPiece.GetColor())]);
 	spawnPieces["left"] = leftPiece;
 
 	// Right piece
 	color = dist(mt);
 	Piece rightPiece(Utils::IntToPieceColor(color), positionX + PIECE_SIZE, gridPositionY - PIECE_SIZE);
+	rightPiece.SetTexture(textureCache[Utils::PieceColorToString(rightPiece.GetColor())]);
 	spawnPieces["right"] = rightPiece;
 }
 
@@ -117,6 +123,8 @@ int main(int argc, char* args[])
 	
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
 	Text scoreText(renderer, "Score: 0", teletoonInGame);
+	Text pausedText(renderer, "Game Paused!", teletoonInGame);
+	Text removePauseText(renderer, "Press Escape again to unpause!", teletoonInGame);
 
 	//Timer
 	float lastFrame = 0;
@@ -125,14 +133,17 @@ int main(int argc, char* args[])
 	float maxPeriod = (float)1000 / MAX_FRAMERATE;
 	int timeInGame = 0;
 
-	// This way the pieces don't stay on top of the lines
-	gridPositionX--;
-	gridPositionY--;
-	gridWidth++;
-	gridHeight++;
+	// Load colors respective texture
+	textureCache[Utils::PieceColorToString(PieceColor::Green)] = renderer.CreateTexture("assets/green.bmp");
+	textureCache[Utils::PieceColorToString(PieceColor::LightBlue)] = renderer.CreateTexture("assets/lightblue.bmp");
+	textureCache[Utils::PieceColorToString(PieceColor::Orange)] = renderer.CreateTexture("assets/orange.bmp");
+	textureCache[Utils::PieceColorToString(PieceColor::Red)] = renderer.CreateTexture("assets/red.bmp");
+	textureCache["background"] = renderer.CreateTexture("assets/background.bmp");
 
 	// Spawn the first pair of pieces
 	SpawnNewPair();
+
+	Renderable background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, textureCache["background"]);
 
 	while (s_IsRunning)
 	{
@@ -142,7 +153,8 @@ int main(int argc, char* args[])
 		if (timestep >= maxPeriod)
 		{
 			// NOTE(Daniel): Dont run this while the game is over and the game is on main menu
-			timeInGame++;
+			if (!s_IsGamePaused)
+				timeInGame++;
 
 			lastFrame = time;
 
@@ -159,37 +171,45 @@ int main(int argc, char* args[])
 				{
 					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 					// Keybinds
-					if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+					if (!s_IsGamePaused)
 					{
-						PieceMoveSound.Play();
-						spawnPieces["left"].Move(-1, 0);
-						spawnPieces["right"].Move(-1, 0);
+						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
+						{
+							PieceMoveSound.Play();
+							spawnPieces["left"].Move(-1, 0);
+							spawnPieces["right"].Move(-1, 0);
+						}
+						else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
+						{
+							PieceMoveSound.Play();
+							spawnPieces["left"].Move(1, 0);
+							spawnPieces["right"].Move(1, 0);
+						}
+						else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
+						{
+							PieceMoveSound.Play();
+							spawnPieces["left"].Move(0, 1);
+							spawnPieces["right"].Move(0, 1);
+						}
+						else if (event.key.keysym.sym == SDLK_z)
+						{
+							PieceMoveSound.Play();
+							spawnPieces["right"].Rotate(-90.0f, spawnPieces["left"].GetPosition());
+						}
+						else if (event.key.keysym.sym == SDLK_x)
+						{
+							PieceMoveSound.Play();
+							spawnPieces["right"].Rotate(90.0f, spawnPieces["left"].GetPosition());
+						}
+						else if (event.key.keysym.sym == SDLK_SPACE) // NOTE: Tests ONLY
+						{
+							SpawnNewPair();
+						}
 					}
-					else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
+
+					if (event.key.keysym.sym == SDLK_ESCAPE)
 					{
-						PieceMoveSound.Play();
-						spawnPieces["left"].Move(1, 0);
-						spawnPieces["right"].Move(1, 0);
-					}
-					else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
-					{
-						PieceMoveSound.Play();
-						spawnPieces["left"].Move(0, 1);
-						spawnPieces["right"].Move(0, 1);
-					}
-					else if (event.key.keysym.sym == SDLK_z)
-					{
-						PieceMoveSound.Play();
-						spawnPieces["right"].Rotate(-90.0f, spawnPieces["left"].GetPosition());
-					}
-					else if (event.key.keysym.sym == SDLK_x)
-					{
-						PieceMoveSound.Play();
-						spawnPieces["right"].Rotate(90.0f, spawnPieces["left"].GetPosition());
-					}
-					else if (event.key.keysym.sym == SDLK_SPACE) // NOTE: Tests ONLY
-					{
-						SpawnNewPair();
+						s_IsGamePaused = !s_IsGamePaused;
 					}
 				}
 			}
@@ -197,7 +217,31 @@ int main(int argc, char* args[])
 			// Clear screen
 			renderer.Clear();
 
+			// Move spawned pieces every 1sec
+			if (timeInGame == (MAX_FRAMERATE * 1))
+			{
+				for (auto& piece : spawnPieces)
+					piece.second.Move(0, 1);
+
+				timeInGame = 0;
+			}
+
 			// Draw
+			// Draw background under everything
+			renderer.DrawRenderable(background);
+
+			for (auto& piece : pieces)
+				renderer.DrawRenderable(piece);
+
+			for (auto& piece : spawnPieces)
+			{
+				// Only render the spawn pieces when they are inside the grid,
+				// don't render them when they are above it
+				if (piece.second.GetPosition().second >= gridPositionY)
+					renderer.DrawRenderable(piece.second);
+			}
+
+			// NOTE: Render this at last so it stays on top of everything
 			// Draw Grid
 			SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 255, 255, 255, SDL_ALPHA_OPAQUE);
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, gridPositionX, (gridPositionY + gridHeight)); // Left Line
@@ -212,25 +256,14 @@ int main(int argc, char* args[])
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, (gridPositionY + 100), (10 + 250), (gridPositionY + 100)); // Bottom Line
 			renderer.DrawText(scoreText, { 25, gridPositionY + 20 });
 
-			// Draw pieces
-			for (auto& piece : pieces)
-				renderer.DrawPiece(piece);
-
-			// See if the time that has passed is equal to MAX_FRAMERATE(1s) times the amount of seconds to wait to move
-			if (timeInGame == (MAX_FRAMERATE * 1))
+			// Draw Menu's
+			if (s_IsGamePaused)
 			{
-				for (auto& piece : spawnPieces)
-					piece.second.Move(0, 1);
-
-				timeInGame = 0;
-			}
-
-			for (auto& piece : spawnPieces)
-			{
-				// Only render the spawn pieces when they are inside the grid,
-				// don't render them when they are above it
-				if (piece.second.GetPosition().second >= gridPositionY)
-					renderer.DrawPiece(piece.second);
+				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
+				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
+				renderer.DrawText(pausedText, (SCREEN_WIDTH / 2) - (pausedText.GetRectSize().first / 2), 250);
+				renderer.DrawText(removePauseText, (SCREEN_WIDTH / 2) - (removePauseText.GetRectSize().first / 2), 300);
 			}
 
 			// Present
@@ -238,6 +271,10 @@ int main(int argc, char* args[])
 		}
 	}
 	
+	for (const auto& texture : textureCache)
+		SDL_DestroyTexture(texture.second);
+	textureCache.clear();
+
 	//Destroy window
 	SDL_DestroyWindow(window);
 

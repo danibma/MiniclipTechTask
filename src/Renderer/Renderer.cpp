@@ -11,33 +11,11 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 	if (TTF_Init() < 0)
 		printf("SDL_TTF could not be initialized: %s\n", SDL_GetError());
 
-	// Load colors respective texture
-	SDL_Surface* surface = SDL_LoadBMP("assets/green.bmp");
-	m_Colors[PieceColor::Green] = SDL_CreateTextureFromSurface(m_Renderer, surface);
-	SDL_FreeSurface(surface);
-
-	surface = SDL_LoadBMP("assets/lightblue.bmp");
-	m_Colors[PieceColor::LightBlue] = SDL_CreateTextureFromSurface(m_Renderer, surface);
-	SDL_FreeSurface(surface);
-
-	surface = SDL_LoadBMP("assets/orange.bmp");
-	m_Colors[PieceColor::Orange] = SDL_CreateTextureFromSurface(m_Renderer, surface);
-	SDL_FreeSurface(surface);
-
-	surface = SDL_LoadBMP("assets/red.bmp");
-	m_Colors[PieceColor::Red] = SDL_CreateTextureFromSurface(m_Renderer, surface);
-	SDL_FreeSurface(surface);
+	SDL_SetRenderDrawBlendMode(m_Renderer, SDL_BLENDMODE_BLEND);
 }
 
 Renderer::~Renderer()
 {
-	for (const auto& texture : m_Colors)
-	{
-		SDL_DestroyTexture(texture.second);
-	}
-
-	m_Colors.clear();
-
 	SDL_DestroyRenderer(m_Renderer);
 
 	TTF_Quit();
@@ -55,14 +33,22 @@ void Renderer::Update()
 	SDL_RenderPresent(m_Renderer);
 }
 
-void Renderer::DrawPiece(Piece& piece)
+SDL_Texture* Renderer::CreateTexture(const char* path)
 {
-	auto pieceColor = piece.GetColor();
+	SDL_Surface* surface = SDL_LoadBMP(path);
+	auto texture = SDL_CreateTextureFromSurface(m_Renderer, surface);
+	SDL_FreeSurface(surface);
+
+	return texture;
+}
+
+void Renderer::DrawRenderable(Renderable& piece)
+{
 	auto [pieceX, pieceY] = piece.GetPosition();
 	auto [sizeX, sizeY] = piece.GetSize();
 	SDL_Rect rect = { pieceX, pieceY, sizeX, sizeY};
 
-	SDL_RenderCopy(m_Renderer, m_Colors[pieceColor], nullptr, &rect);
+	SDL_RenderCopy(m_Renderer, piece.GetTexture(), nullptr, &rect);
 }
 
 void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position)

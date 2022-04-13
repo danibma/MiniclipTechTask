@@ -5,7 +5,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-#include "Piece.h"
+#include "Renderable.h"
 #include "Text.h"
 
 class Renderer
@@ -19,7 +19,9 @@ public:
 	void Clear();
 	void Update();
 
-	void DrawPiece(Piece& piece);
+	SDL_Texture* CreateTexture(const char* path);
+
+	void DrawRenderable(Renderable& piece);
 	void DrawText(Text& text, std::pair<int32_t, int32_t> position);
 	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 
@@ -27,8 +29,5 @@ public:
 
 private:
 	SDL_Renderer* m_Renderer;
-
-	// pieces colors textures
-	std::unordered_map<PieceColor, SDL_Texture*> m_Colors;
 };
 

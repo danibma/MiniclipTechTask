@@ -4,6 +4,8 @@
 
 #include <utility>
 
+#include "Renderer/Renderable.h"
+
 #define PIECE_SIZE 32
 
 enum class PieceColor : uint32_t
@@ -38,9 +40,31 @@ namespace Utils
 			break;
 		}
 	}
+
+	inline const char* PieceColorToString(PieceColor color)
+	{
+		switch (color)
+		{
+		case PieceColor::Green:
+			return "Green";
+			break;
+		case PieceColor::LightBlue:
+			return "LightBlue";
+			break;
+		case PieceColor::Orange:
+			return "Orange";
+			break;
+		case PieceColor::Red:
+			return "Red";
+			break;
+		default:
+			return "None";
+			break;
+		}
+	}
 }
 
-class Piece
+class Piece : public Renderable
 {
 public:
 	Piece() {}
@@ -48,11 +72,6 @@ public:
 	~Piece();
 
 	inline const PieceColor& GetColor() const { return m_Color; }
-	inline const std::pair<int32_t, int32_t> GetPosition() const { return { m_PositionX, m_PositionY }; }
-	inline const std::pair<int32_t, int32_t> GetSize() const { return { m_Width, m_Height }; }
-
-	void SetPosition(int32_t x, int32_t y);
-	void SetSize(int32_t x, int32_t y);
 
 	void Rotate(float angle, const int32_t centerX, const int32_t centerY);
 	void Rotate(float angle, const std::pair<int32_t, int32_t>& centerPoint);
@@ -65,9 +84,5 @@ public:
 private:
 	PieceColor m_Color = PieceColor::None;
 
-	int32_t m_PositionX = 0;
-	int32_t m_PositionY = 0;
-	uint32_t m_Width = 0;
-	uint32_t m_Height = 0;
 };
 

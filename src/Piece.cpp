@@ -17,18 +17,6 @@ Piece::~Piece()
 {
 }
 
-void Piece::SetPosition(int32_t x, int32_t y)
-{
-	m_PositionX = x;
-	m_PositionY = y;
-}
-
-void Piece::SetSize(int32_t x, int32_t y)
-{
-	m_Width = x;
-	m_Height = y;
-}
-
 void Piece::Rotate(float angle, const int32_t centerX, const int32_t centerY)
 {
 	float angleInRadians = ToRadians(angle);

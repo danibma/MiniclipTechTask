@@ -44,6 +44,8 @@ void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint
 	if (!m_IsLocked)
 	{
 		m_CurrentRotation += angle;
+		if (m_CurrentRotation % 360 == 0)
+			m_CurrentRotation = 0;
 
 		float angleInRadians = ToRadians(angle);
 

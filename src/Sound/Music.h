@@ -13,5 +13,6 @@ public:
 
 private:
 	Mix_Music* m_Sound;
+	bool m_IsPlaying = false;
 };
 

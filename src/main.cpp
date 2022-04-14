@@ -4,6 +4,7 @@
 #include <SDL_mixer.h>
 
 #include <random>
+#include <array>
 
 #include "Renderer/Renderer.h"
 #include "Piece.h"
@@ -18,7 +19,7 @@
 // - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair ✅
 // - Pairs are spawned above the top of the grid, dropping down until they are placed ✅
 // - The pair is considered placed when any of the pieces of the pair cannot be moved further down ✅
-// - The game is lost if it is not possible to place the pair within the grid
+// - The game is lost if it is not possible to place the pair within the grid ✅
 // - The player controls the pair’s movement by :
 //		- Moving the pair sideways ✅
 //		- Rotating the pair in 90 degree angles(left or right) ✅
@@ -29,6 +30,9 @@
 //		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
 // - The next pair will be spawned once all matches are cleared
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
+// - Rotacao para fora da grid
+// Pluses
+// - Spawnar tanto na horizontal como na vertical
 
 #define MAX_FRAMERATE 60
 
@@ -39,10 +43,13 @@ constexpr uint32_t SCREEN_HEIGHT = 720;
 static bool s_IsRunning		= true;
 static bool s_MusicEnabled	= false;
 static bool s_IsGamePaused  = false;
+static bool s_IsGameLost	= false;
 
 Renderer renderer;
 
-std::vector<std::shared_ptr<Piece>> pieces;
+std::array<bool, 8> occupiedCells;
+
+std::vector<std::shared_ptr<Piece>> lockedPieces;
 std::unordered_map<const char*, std::shared_ptr<Piece>> spawnPieces;
 
 // pieces colors textures
@@ -60,32 +67,75 @@ std::mt19937_64 mt(rd());
 
 int timeInGame = 0;
 
+/**
+ * @returns true if the game is lost and return false if the game is not lost
+ */
+bool CheckGameLost()
+{
+	if (std::all_of(occupiedCells.begin(), occupiedCells.end(), [](bool value) {return value == true;}))
+	{
+		s_IsGameLost = true;
+		return true;
+	}
+	else
+	{
+		s_IsGameLost = false;
+		return false;
+	}
+	
+}
+
 void SpawnNewPair()
 {
 	// Generate random number from 0 to 6 which is the number of cells horizontally on the grid,
 	// its 6 because the last cell would be the seventh, but we are spawning a pair of pieces, so the first piece has to spawn on
 	// the sixth, then get the x position to spawn the piece, by multiplying the random number that we got by the PIECE_SIZE 
 	// and adding that up to the gridPositionX
+
+	// Reset move timer
 	timeInGame = 0;
 
-	std::uniform_int_distribution<uint32_t> dist(0, 6);
-	auto cell = dist(mt);
+	if (!CheckGameLost())
+	{
+		for (const auto& piece : lockedPieces)
+		{
+			// Check if any of the pieces is at the top row of the grid
+			if (piece->GetPosition().second == gridPositionY)
+			{
+				// if it is get the cell number of the piece and make it occupied on the array
+				occupiedCells[piece->GetCellNumber()] = true;
+			}
+		}
 
-	dist = std::uniform_int_distribution<uint32_t>(1, 4);
-	auto color = dist(mt);
+		// Get the cell number that is not occupied
+		std::uniform_int_distribution<uint32_t> dist(0, 7);
+		uint32_t cell = 0;
+		while (!CheckGameLost())
+		{
+			cell = dist(mt);
 
-	uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
+			if (!occupiedCells[cell])
+				break;
+		}
 
-	// Left piece
-	std::shared_ptr<Piece> leftPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
-	leftPiece->SetTexture(textureCache[Utils::PieceColorToString(leftPiece->GetColor())]);
-	spawnPieces["left"] = leftPiece;
+		dist = std::uniform_int_distribution<uint32_t>(1, 4);
+		auto color = dist(mt);
 
-	// Right piece
-	color = dist(mt);
-	std::shared_ptr<Piece> rightPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX + PIECE_SIZE, gridPositionY - PIECE_SIZE);
-	rightPiece->SetTexture(textureCache[Utils::PieceColorToString(rightPiece->GetColor())]);
-	spawnPieces["right"] = rightPiece;
+		uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
+
+		// top piece
+		color = dist(mt);
+		std::shared_ptr<Piece> topPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
+		topPiece->SetTexture(textureCache[Utils::PieceColorToString(topPiece->GetColor())]);
+		topPiece->SetCellNumber(cell);
+		spawnPieces["top"] = topPiece;
+
+		// bottom piece
+		std::shared_ptr<Piece> bottomPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
+		bottomPiece->SetTexture(textureCache[Utils::PieceColorToString(bottomPiece->GetColor())]);
+		bottomPiece->SetCellNumber(cell);
+		spawnPieces["bottom"] = bottomPiece;
+	}
 }
 
 int main(int argc, char* args[])
@@ -127,6 +177,7 @@ int main(int argc, char* args[])
 	Text scoreText(renderer, "Score: 0", teletoonInGame);
 	Text pausedText(renderer, "Game Paused!", teletoonInGame);
 	Text removePauseText(renderer, "Press Escape again to unpause!", teletoonInGame);
+	Text gameOverText(renderer, "Game Over!", teletoonInGame);
 
 	//Timer
 	float lastFrame = 0;
@@ -153,8 +204,8 @@ int main(int argc, char* args[])
 
 		if (timestep >= maxPeriod)
 		{
-			// NOTE(Daniel): Dont run this while the game is over and the game is on main menu
-			if (!s_IsGamePaused)
+			// NOTE(Daniel): Dont run this while the game is over or if the game is paused
+			if (!s_IsGamePaused && !s_IsGameLost)
 				timeInGame++;
 
 			lastFrame = time;
@@ -172,44 +223,63 @@ int main(int argc, char* args[])
 				{
 					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 					// Keybinds
-					if (!s_IsGamePaused)
+					if (!s_IsGamePaused && !s_IsGameLost)
 					{
 						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 						{
-							if (spawnPieces["left"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
-								spawnPieces["right"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
+							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
 							{
-								spawnPieces["left"]->Move(-1, 0);
-								spawnPieces["right"]->Move(-1, 0);
+								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
+									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
+								{
+									spawnPieces["bottom"]->Move(-1, 0);
+									spawnPieces["top"]->Move(-1, 0);
+								}
 							}
 						}
 						else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
 						{
-							if (spawnPieces["left"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
-								spawnPieces["right"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
+							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
 							{
-								spawnPieces["left"]->Move(1, 0);
-								spawnPieces["right"]->Move(1, 0);
+								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
+									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
+								{
+									spawnPieces["bottom"]->Move(1, 0);
+									spawnPieces["top"]->Move(1, 0);
+								}
 							}
 						}
 						else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
 						{
-							spawnPieces["left"]->Move(0, 1);
-							spawnPieces["right"]->Move(0, 1);
+							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+							{
+								spawnPieces["bottom"]->Move(0, 1);
+								spawnPieces["top"]->Move(0, 1);
+							}
 						}
 						else if (event.key.keysym.sym == SDLK_z)
 						{
-							spawnPieces["right"]->Rotate(-90.0f, spawnPieces["left"]->GetPosition());
+							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+								spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
 						}
 						else if (event.key.keysym.sym == SDLK_x)
 						{
-							spawnPieces["right"]->Rotate(90.0f, spawnPieces["left"]->GetPosition());
+							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+								spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
 						}
 					}
 
-					if (event.key.keysym.sym == SDLK_ESCAPE)
+					if (!s_IsGameLost)
 					{
-						s_IsGamePaused = !s_IsGamePaused;
+						if (event.key.keysym.sym == SDLK_ESCAPE)
+						{
+							s_IsGamePaused = !s_IsGamePaused;
+						}
+						else if (event.key.keysym.sym == SDLK_SPACE)
+						{
+							spawnPieces["bottom"]->SetLocked(true);
+							spawnPieces["top"]->SetLocked(true);
+						}
 					}
 				}
 			}
@@ -218,46 +288,44 @@ int main(int argc, char* args[])
 			renderer.Clear();
 
 			// Check if any of the spawned pieces has reached the end of the grid
-			if (spawnPieces["left"]->IsCollidingVertically(gridPositionY, gridHeight))
-				spawnPieces["left"]->SetLocked(true);
-
-			if (spawnPieces["right"]->IsCollidingVertically(gridPositionY, gridHeight))
-				spawnPieces["right"]->SetLocked(true);
-
-			for (const auto& piece : pieces)
+			if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
+				spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
 			{
-				if (piece->IsCollidingWithPiece(*spawnPieces["right"].get()))
-					spawnPieces["right"]->SetLocked(true);
-
-				if (piece->IsCollidingWithPiece(*spawnPieces["left"].get()))
-					spawnPieces["left"]->SetLocked(true);
+				spawnPieces["bottom"]->SetLocked(true);
+				spawnPieces["top"]->SetLocked(true);
 			}
 
-			// if the rotation piece rotation is divisible by 90 it means that the pieces are vertically stacked
-			// if thats the case it just stops when one of them reaches the any limit
-			if (spawnPieces["right"]->GetRotation() != 0 && spawnPieces["right"]->GetRotation() % 90 == 0)
+			// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
+			for (const auto& piece : lockedPieces)
 			{
-				if (spawnPieces["right"]->IsLocked() || spawnPieces["left"]->IsLocked())
-				{
-					pieces.emplace_back(spawnPieces["left"]);
-					pieces.emplace_back(spawnPieces["right"]);
+				if (piece->IsCollidingWithPiece(*spawnPieces["top"]))
+					spawnPieces["top"]->SetLocked(true);
 
-					SpawnNewPair();
+				if (piece->IsCollidingWithPiece(*spawnPieces["bottom"]))
+					spawnPieces["bottom"]->SetLocked(true);
+			}
+
+			// If both spawned pieces are locked, check the matches, 
+			// put the spawned pieces inside the locked pieces vector and spawn new ones
+			if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
+			{
+				lockedPieces.emplace_back(spawnPieces["bottom"]);
+				lockedPieces.emplace_back(spawnPieces["top"]);
+
+				SpawnNewPair();
+			} 
+			else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
+			{
+				if (spawnPieces["bottom"]->IsCollidingWithPiece(*spawnPieces["top"]))
+				{
+					if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||
+						spawnPieces["top"]->GetRotation() % 180 == 0)
+					{
+						spawnPieces["top"]->SetLocked(true);
+						spawnPieces["bottom"]->SetLocked(true);
+					}
 				}
 			}
-			else
-			{
-				if (spawnPieces["right"]->IsLocked() && spawnPieces["left"]->IsLocked())
-				{
-					pieces.emplace_back(spawnPieces["left"]);
-					pieces.emplace_back(spawnPieces["right"]);
-
-					SpawnNewPair();
-				}
-			}
-
-			spawnPieces["right"]->IsCollidingWithPiece(*spawnPieces["left"].get());
-
 
 			// Move spawned pieces every 1sec
 			if (timeInGame == (MAX_FRAMERATE * 1))
@@ -272,29 +340,29 @@ int main(int argc, char* args[])
 			// Draw background under everything
 			renderer.DrawRenderable(background);
 
-			for (auto& piece : pieces)
+			for (auto& piece : lockedPieces)
 				renderer.DrawRenderable(*piece);
 
 			for (auto& piece : spawnPieces)
 			{
 				// Only render the spawn pieces when they are inside the grid,
 				// don't render them when they are above it
-				if (piece.second->GetPosition().second >= gridPositionY)
+				//if (piece.second->GetPosition().second >= gridPositionY)
 					renderer.DrawRenderable(*piece.second);
 			}
 
 			// NOTE: Render this at last so it stays on top of everything
 			// Draw Grid
 			SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 255, 255, 255, SDL_ALPHA_OPAQUE);
-			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, gridPositionX, (gridPositionY + gridHeight)); // Left Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, gridPositionX, (gridPositionY + gridHeight)); // bottom Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, gridPositionY, (gridPositionX + gridWidth), gridPositionY); // Top Line
-			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (gridPositionX + gridWidth), gridPositionY, (gridPositionX + gridWidth), (gridPositionY + gridHeight)); // Right Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (gridPositionX + gridWidth), gridPositionY, (gridPositionX + gridWidth), (gridPositionY + gridHeight)); // top Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), gridPositionX, (gridPositionY + gridHeight), (gridPositionX + gridWidth), (gridPositionY + gridHeight)); // Bottom Line
 
 			// Draw score
-			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, (10 + 250), gridPositionY); // Left Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, (10 + 250), gridPositionY); // bottom Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, 10, (gridPositionY + 100)); // Top Line
-			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (10 + 250), gridPositionY, (10 + 250), (gridPositionY + 100)); // Right Line
+			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (10 + 250), gridPositionY, (10 + 250), (gridPositionY + 100)); // top Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, (gridPositionY + 100), (10 + 250), (gridPositionY + 100)); // Bottom Line
 			renderer.DrawText(scoreText, { 25, gridPositionY + 20 });
 
@@ -306,6 +374,15 @@ int main(int argc, char* args[])
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawText(pausedText, (SCREEN_WIDTH / 2) - (pausedText.GetRectSize().first / 2), 250);
 				renderer.DrawText(removePauseText, (SCREEN_WIDTH / 2) - (removePauseText.GetRectSize().first / 2), 300);
+			}
+
+			if (CheckGameLost())
+			{
+				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
+				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
+				renderer.DrawText(gameOverText, (SCREEN_WIDTH / 2) - (gameOverText.GetRectSize().first / 2), 250);
+				GameOverMusic.Play(false);
 			}
 
 			// Present

@@ -17,13 +17,19 @@ void Music::Destroy()
 
 void Music::Play(bool loop)
 {
-	if (Mix_PlayMusic(m_Sound, loop ? -1 : 0) == -1)
-		printf("Could not play sound: %s\n", SDL_GetError());
+	if (!m_IsPlaying)
+	{
+		m_IsPlaying = true;
 
-	Mix_VolumeMusic(20);
+		if (Mix_PlayMusic(m_Sound, loop ? -1 : 0) == -1)
+			printf("Could not play sound: %s\n", SDL_GetError());
+
+		Mix_VolumeMusic(20);
+	}
 }
 
 void Music::Pause()
 {
 	Mix_PauseMusic();
+	m_IsPlaying = false;
 }

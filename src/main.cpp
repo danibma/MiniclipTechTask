@@ -70,37 +70,36 @@ int timeInGame = 0;
 /**
  * @returns true if the game is lost and return false if the game is not lost
  */
-bool CheckGameLost()
+void CheckGameLost()
 {
-	if (std::all_of(occupiedCells.begin(), occupiedCells.end(), [](bool value) {return value == true;}))
+	// Update occupied cells array before checking if they are all true
+	for (const auto& piece : lockedPieces)
 	{
+		// Check if any of the pieces is at the top row of the grid
+		if (piece->GetPosition().second == (gridPositionY + PIECE_SIZE))
+		{
+			// if it is get the cell number of the piece and make it occupied on the array
+			auto rowCellNumber = (piece->GetPosition().first - gridPositionX) / PIECE_SIZE;
+			occupiedCells[rowCellNumber] = true;
+		}
+	}
+
+	// See if every cell of the second row counting from the top is occupied
+	if (std::all_of(occupiedCells.begin(), occupiedCells.end(), [](bool value) {return value == true; }))
 		s_IsGameLost = true;
-		return true;
-	}
 	else
-	{
 		s_IsGameLost = false;
-		return false;
-	}
 }
 
 void SpawnNewPair()
 {
-	// Reset move timer
-	timeInGame = 0;
+	// Check if the game is lost before spawning a new pair
+	CheckGameLost();
 
-	if (!CheckGameLost())
+	if (!s_IsGameLost)
 	{
-		for (const auto& piece : lockedPieces)
-		{
-			// Check if any of the pieces is at the top row of the grid
-			if (piece->GetPosition().second == (gridPositionY + PIECE_SIZE))
-			{
-				// if it is get the cell number of the piece and make it occupied on the array
-				auto rowCellNumber = (piece->GetPosition().first - gridPositionX) / PIECE_SIZE;
-				occupiedCells[rowCellNumber] = true;
-			}
-		}
+		// Reset move timer
+		timeInGame = 0;
 
 		// Generate random number from 0 to 7 which is the number of cells horizontally on the grid,
 		// then get the x position to spawn the piece by multiplying the random number that we got by the PIECE_SIZE 
@@ -109,7 +108,7 @@ void SpawnNewPair()
 		uint32_t cell = 0;
 
 		// Get the cell number that is not occupied
-		while (!CheckGameLost())
+		while (true)
 		{
 			cell = dist(mt);
 
@@ -202,7 +201,7 @@ int main(int argc, char* args[])
 		if (timestep >= maxPeriod)
 		{
 			// NOTE(Daniel): Dont run this while the game is over or if the game is paused
-			if (!s_IsGamePaused && !s_IsGameLost)
+			if (!s_IsGamePaused)
 				timeInGame++;
 
 			lastFrame = time;
@@ -220,7 +219,7 @@ int main(int argc, char* args[])
 				{
 					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 					// Keybinds
-					if (!s_IsGamePaused && !s_IsGameLost)
+					if (!s_IsGamePaused)
 					{
 						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 						{
@@ -272,11 +271,6 @@ int main(int argc, char* args[])
 						{
 							s_IsGamePaused = !s_IsGamePaused;
 						}
-						else if (event.key.keysym.sym == SDLK_SPACE)
-						{
-							spawnPieces["bottom"]->SetLocked(true);
-							spawnPieces["top"]->SetLocked(true);
-						}
 					}
 				}
 			}
@@ -284,53 +278,56 @@ int main(int argc, char* args[])
 			// Clear screen
 			renderer.Clear();
 
-			// Check if any of the spawned pieces has reached the end of the grid
-			if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
-				spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
+			if (!s_IsGameLost)
 			{
-				spawnPieces["bottom"]->SetLocked(true);
-				spawnPieces["top"]->SetLocked(true);
-			}
-
-			// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
-			for (const auto& piece : lockedPieces)
-			{
-				if (piece->IsCollidingWithPiece(*spawnPieces["top"]))
-					spawnPieces["top"]->SetLocked(true);
-
-				if (piece->IsCollidingWithPiece(*spawnPieces["bottom"]))
-					spawnPieces["bottom"]->SetLocked(true);
-			}
-
-			// If both spawned pieces are locked, check the matches, 
-			// put the spawned pieces inside the locked pieces vector and spawn new ones
-			if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
-			{
-				lockedPieces.emplace_back(spawnPieces["bottom"]);
-				lockedPieces.emplace_back(spawnPieces["top"]);
-
-				SpawnNewPair();
-			} 
-			else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
-			{
-				if (spawnPieces["bottom"]->IsCollidingWithPiece(*spawnPieces["top"]))
+				// Check if any of the spawned pieces has reached the end of the grid
+				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
+					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
 				{
-					if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||
-						spawnPieces["top"]->GetRotation() % 180 == 0)
-					{
+					spawnPieces["bottom"]->SetLocked(true);
+					spawnPieces["top"]->SetLocked(true);
+				}
+
+				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
+				for (const auto& piece : lockedPieces)
+				{
+					if (piece->IsCollidingWithPiece(*spawnPieces["top"]))
 						spawnPieces["top"]->SetLocked(true);
+
+					if (piece->IsCollidingWithPiece(*spawnPieces["bottom"]))
 						spawnPieces["bottom"]->SetLocked(true);
+				}
+
+				// If both spawned pieces are locked, check the matches, 
+				// put the spawned pieces inside the locked pieces vector and spawn new ones
+				if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
+				{
+					lockedPieces.emplace_back(spawnPieces["bottom"]);
+					lockedPieces.emplace_back(spawnPieces["top"]);
+
+					SpawnNewPair();
+				}
+				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
+				{
+					if (spawnPieces["bottom"]->IsCollidingWithPiece(*spawnPieces["top"]))
+					{
+						if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||
+							spawnPieces["top"]->GetRotation() % 180 == 0)
+						{
+							spawnPieces["top"]->SetLocked(true);
+							spawnPieces["bottom"]->SetLocked(true);
+						}
 					}
 				}
-			}
 
-			// Move spawned pieces every 1sec
-			if (timeInGame == (MAX_FRAMERATE * 1))
-			{
-				for (auto& piece : spawnPieces)
-					piece.second->Move(0, 1);
+				// Move spawned pieces every 1sec
+				if (timeInGame == (MAX_FRAMERATE * 1))
+				{
+					for (auto& piece : spawnPieces)
+						piece.second->Move(0, 1);
 
-				timeInGame = 0;
+					timeInGame = 0;
+				}
 			}
 
 			// Draw
@@ -373,7 +370,7 @@ int main(int argc, char* args[])
 				renderer.DrawText(removePauseText, (SCREEN_WIDTH / 2) - (removePauseText.GetRectSize().first / 2), 300);
 			}
 
-			if (CheckGameLost())
+			if (s_IsGameLost)
 			{
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
 				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };

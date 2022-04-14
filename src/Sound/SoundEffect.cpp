@@ -16,8 +16,7 @@ void SoundEffect::Destroy()
 
 void SoundEffect::Play()
 {
-	if (Mix_PlayChannel(-1, m_Sound, 0) == -1)
-		printf("Could not play sound: %s\n", SDL_GetError());
+	Mix_PlayChannel(-1, m_Sound, 0);
 
 	Mix_VolumeChunk(m_Sound, 20);
 }

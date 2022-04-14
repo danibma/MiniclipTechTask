@@ -25,7 +25,7 @@
 //		- Making the pair fall faster ✅
 // - Once the pair is placed:
 //		- The player can no longer move the pair ✅
-//		- The pieces will unpair and each of them will fall to the lowest position it can reach
+//		- The pieces will unpair and each of them will fall to the lowest position it can reach ✅
 //		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
 // - The next pair will be spawned once all matches are cleared
 // - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
@@ -224,9 +224,18 @@ int main(int argc, char* args[])
 			if (spawnPieces["right"]->IsCollidingVertically(gridPositionY, gridHeight))
 				spawnPieces["right"]->SetLocked(true);
 
+			for (const auto& piece : pieces)
+			{
+				if (piece->IsCollidingWithPiece(*spawnPieces["right"].get()))
+					spawnPieces["right"]->SetLocked(true);
+
+				if (piece->IsCollidingWithPiece(*spawnPieces["left"].get()))
+					spawnPieces["left"]->SetLocked(true);
+			}
+
 			// if the rotation piece rotation is divisible by 90 it means that the pieces are vertically stacked
 			// if thats the case it just stops when one of them reaches the any limit
-			if (spawnPieces["right"]->GetRotation() % 90 == 0)
+			if (spawnPieces["right"]->GetRotation() != 0 && spawnPieces["right"]->GetRotation() % 90 == 0)
 			{
 				if (spawnPieces["right"]->IsLocked() || spawnPieces["left"]->IsLocked())
 				{
@@ -246,6 +255,8 @@ int main(int argc, char* args[])
 					SpawnNewPair();
 				}
 			}
+
+			spawnPieces["right"]->IsCollidingWithPiece(*spawnPieces["left"].get());
 
 
 			// Move spawned pieces every 1sec

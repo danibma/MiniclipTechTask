@@ -96,15 +96,10 @@ int8_t Piece::IsCollidingHoriontally(int32_t limitX, int32_t limitWidth)
 bool Piece::IsCollidingWithPiece(Piece& piece)
 {
 	auto [positionX, positionY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
 
-	if ((m_PositionX + PIECE_SIZE) == positionX ||
-		(m_PositionY + PIECE_SIZE) == positionY ||
-		(positionX + PIECE_SIZE) == m_PositionX ||
-		(positionY + PIECE_SIZE) == m_PositionY)
-	{
-		printf("Is Collinding");
-		return true;
-	}
+	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX)) return false;
+	if ((m_PositionY + m_Height) < (positionY) || (m_PositionY) > (positionY + sizeY)) return false;
 
-	return false;
+	return true;
 }

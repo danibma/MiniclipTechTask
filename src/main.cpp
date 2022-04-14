@@ -82,16 +82,10 @@ bool CheckGameLost()
 		s_IsGameLost = false;
 		return false;
 	}
-	
 }
 
 void SpawnNewPair()
 {
-	// Generate random number from 0 to 6 which is the number of cells horizontally on the grid,
-	// its 6 because the last cell would be the seventh, but we are spawning a pair of pieces, so the first piece has to spawn on
-	// the sixth, then get the x position to spawn the piece, by multiplying the random number that we got by the PIECE_SIZE 
-	// and adding that up to the gridPositionX
-
 	// Reset move timer
 	timeInGame = 0;
 
@@ -100,16 +94,21 @@ void SpawnNewPair()
 		for (const auto& piece : lockedPieces)
 		{
 			// Check if any of the pieces is at the top row of the grid
-			if (piece->GetPosition().second == gridPositionY)
+			if (piece->GetPosition().second == (gridPositionY + PIECE_SIZE))
 			{
 				// if it is get the cell number of the piece and make it occupied on the array
-				occupiedCells[piece->GetCellNumber()] = true;
+				auto rowCellNumber = (piece->GetPosition().first - gridPositionX) / PIECE_SIZE;
+				occupiedCells[rowCellNumber] = true;
 			}
 		}
 
-		// Get the cell number that is not occupied
+		// Generate random number from 0 to 7 which is the number of cells horizontally on the grid,
+		// then get the x position to spawn the piece by multiplying the random number that we got by the PIECE_SIZE 
+		// and adding that up to the gridPositionX
 		std::uniform_int_distribution<uint32_t> dist(0, 7);
 		uint32_t cell = 0;
+
+		// Get the cell number that is not occupied
 		while (!CheckGameLost())
 		{
 			cell = dist(mt);
@@ -127,13 +126,11 @@ void SpawnNewPair()
 		color = dist(mt);
 		std::shared_ptr<Piece> topPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
 		topPiece->SetTexture(textureCache[Utils::PieceColorToString(topPiece->GetColor())]);
-		topPiece->SetCellNumber(cell);
 		spawnPieces["top"] = topPiece;
 
 		// bottom piece
 		std::shared_ptr<Piece> bottomPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
 		bottomPiece->SetTexture(textureCache[Utils::PieceColorToString(bottomPiece->GetColor())]);
-		bottomPiece->SetCellNumber(cell);
 		spawnPieces["bottom"] = bottomPiece;
 	}
 }

@@ -75,7 +75,6 @@ public:
 
 	inline const PieceColor& GetColor() const { return m_Color; }
 	inline const int32_t GetRotation() const { return m_CurrentRotation; }
-	inline const int32_t GetCellNumber() const { return m_CellNumber; }
 
 	inline const bool IsLocked() { return m_IsLocked; }
 
@@ -109,13 +108,11 @@ public:
 	bool IsCollidingWithPiece(Piece& piece);
 
 	inline void SetLocked(bool value) { m_IsLocked = value; }
-	inline void SetCellNumber(int32_t value) { m_CellNumber = value; }
 
 private:
 	PieceColor m_Color = PieceColor::None;
 	bool m_IsLocked = false;
 	SoundEffect m_MoveSound;
 	int32_t m_CurrentRotation = 0;
-	int32_t m_CellNumber = -1;
 };
 

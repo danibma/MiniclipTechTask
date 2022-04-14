@@ -251,6 +251,7 @@ int main(int argc, char* args[])
 							{
 								spawnPieces["bottom"]->Move(0, 1);
 								spawnPieces["top"]->Move(0, 1);
+								timeInGame = 0;
 							}
 						}
 						else if (event.key.keysym.sym == SDLK_z)
@@ -278,7 +279,7 @@ int main(int argc, char* args[])
 			// Clear screen
 			renderer.Clear();
 
-			if (!s_IsGameLost)
+			if (!s_IsGameLost && !s_IsGamePaused)
 			{
 				// Check if any of the spawned pieces has reached the end of the grid
 				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
@@ -309,6 +310,14 @@ int main(int argc, char* args[])
 				}
 				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
 				{
+					if (timeInGame == (MAX_FRAMERATE / 10))
+					{
+						for (auto& piece : spawnPieces)
+							piece.second->Move(0, 1);
+
+						timeInGame = 0;
+					}
+
 					if (spawnPieces["bottom"]->IsCollidingWithPiece(*spawnPieces["top"]))
 					{
 						if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||

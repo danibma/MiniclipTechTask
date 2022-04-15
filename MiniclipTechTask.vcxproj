@@ -157,23 +157,25 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\UI\Button.cpp" />
     <ClCompile Include="src\Renderer\Renderable.cpp" />
-    <ClCompile Include="src\Renderer\Font.cpp" />
+    <ClCompile Include="src\UI\Font.cpp" />
     <ClCompile Include="src\Sound\SoundEffect.cpp" />
     <ClCompile Include="src\Sound\Music.cpp" />
     <ClCompile Include="src\Piece.cpp" />
     <ClCompile Include="src\Renderer\Renderer.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Renderer\Text.cpp" />
+    <ClCompile Include="src\UI\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\UI\Button.h" />
     <ClInclude Include="src\Renderer\Renderable.h" />
-    <ClInclude Include="src\Renderer\Font.h" />
+    <ClInclude Include="src\UI\Font.h" />
     <ClInclude Include="src\Sound\SoundEffect.h" />
     <ClInclude Include="src\Sound\Music.h" />
     <ClInclude Include="src\Piece.h" />
     <ClInclude Include="src\Renderer\Renderer.h" />
-    <ClInclude Include="src\Renderer\Text.h" />
+    <ClInclude Include="src\UI\Text.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

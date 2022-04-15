@@ -10,6 +10,7 @@
 #include "Piece.h"
 #include "Sound/Music.h"
 #include "Sound/SoundEffect.h"
+#include "UI/Button.h"
 
 // Game Requirements
 // ✅ - The game is played on a 8x16 grid 
@@ -28,8 +29,7 @@
 //		✅ - The player can no longer move the pair 
 //		✅ - The pieces will unpair and each of them will fall to the lowest position it can reach 
 //		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
-// - The next pair will be spawned once all matches are cleared
-// ✅ - Rotacao para fora da grid
+// ✅ - The next pair will be spawned once all matches are cleared
 // ✅ - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
 // 
 // Pluses
@@ -41,10 +41,16 @@
 constexpr uint32_t SCREEN_WIDTH = 960;
 constexpr uint32_t SCREEN_HEIGHT = 720;
 
+enum class GameState
+{
+	kGameRunning,
+	kGamePaused,
+	kGameLost,
+	kGameMainMenu
+} s_GameState;
+
 static bool s_IsRunning		= true;
 static bool s_MusicEnabled	= false;
-static bool s_IsGamePaused  = false;
-static bool s_IsGameLost	= false;
 
 Renderer renderer;
 
@@ -87,9 +93,7 @@ void CheckGameLost()
 
 	// See if every cell of the second row counting from the top is occupied
 	if (std::all_of(occupiedCells.begin(), occupiedCells.end(), [](bool value) {return value == true; }))
-		s_IsGameLost = true;
-	else
-		s_IsGameLost = false;
+		s_GameState = GameState::kGameLost;
 }
 
 void SpawnNewPair()
@@ -97,7 +101,7 @@ void SpawnNewPair()
 	// Check if the game is lost before spawning a new pair
 	CheckGameLost();
 
-	if (!s_IsGameLost)
+	if (s_GameState == GameState::kGameRunning)
 	{
 		// Reset move timer
 		timeInGame = 0;
@@ -188,11 +192,41 @@ int main(int argc, char* args[])
 	textureCache[Utils::PieceColorToString(PieceColor::Orange)] = renderer.CreateTexture("assets/orange.bmp");
 	textureCache[Utils::PieceColorToString(PieceColor::Red)] = renderer.CreateTexture("assets/red.bmp");
 	textureCache["background"] = renderer.CreateTexture("assets/background.bmp");
-
-	// Spawn the first pair of pieces
-	SpawnNewPair();
+	textureCache["buttonBackground"] = renderer.CreateTexture("assets/button.bmp");
+	textureCache["buttonPressed"] = renderer.CreateTexture("assets/button_pressed.bmp");
 
 	Renderable background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, textureCache["background"]);
+
+	// Main Menu
+	Text playButtonText(renderer, "Play Game", teletoonInGame);
+	Button playButton(playButtonText, textureCache["buttonBackground"], textureCache["buttonPressed"], { (SCREEN_WIDTH / 2) - (350 / 2), 150}, {350, 80});
+	playButton.SetOnClickCallback([]() {
+		s_GameState = GameState::kGameRunning;
+
+		// Spawn the first pair of pieces
+		SpawnNewPair();
+	});
+
+	Text quitButtonText(renderer, "Quit Game", teletoonInGame);
+	Button quitButton(quitButtonText, textureCache["buttonBackground"], textureCache["buttonPressed"], { (SCREEN_WIDTH / 2) - (350 / 2), 250 }, { 350, 80 });
+	quitButton.SetOnClickCallback([]() {
+		s_IsRunning = false;
+	});
+
+	Font teletoonControlsTitle("assets/Fonts/Teletoon.ttf", 32);
+	Text howToPlayText(renderer, "How To Play:", teletoonControlsTitle);
+
+	std::vector<Text> controlsTexts;
+	controlsTexts.reserve(6);
+	Font teletoonControls("assets/Fonts/Teletoon.ttf", 25);
+	controlsTexts.emplace_back(renderer, "Move Left: A or Left Arrow", teletoonControls);
+	controlsTexts.emplace_back(renderer, "Move Right: D or Right Arrow", teletoonControls);
+	controlsTexts.emplace_back(renderer, "Move Down: S or Down Arrow", teletoonControls);
+	controlsTexts.emplace_back(renderer, "Rotate Left: Z", teletoonControls);
+	controlsTexts.emplace_back(renderer, "Rotate Right: X", teletoonControls);
+	controlsTexts.emplace_back(renderer, "Pause/Unpause: Escape", teletoonControls);
+
+	s_GameState = GameState::kGameMainMenu;
 
 	while (s_IsRunning)
 	{
@@ -201,10 +235,6 @@ int main(int argc, char* args[])
 
 		if (timestep >= maxPeriod)
 		{
-			// NOTE(Daniel): Dont run this while the game is over or if the game is paused
-			if (!s_IsGamePaused)
-				timeInGame++;
-
 			lastFrame = time;
 
 			SDL_Event event;
@@ -214,13 +244,25 @@ int main(int argc, char* args[])
 					s_IsRunning = false;
 
 				if (event.type == SDL_MOUSEBUTTONDOWN)
-					printf("TODO: mouse click!\n");
+				{
+					if (playButton.IsMouseOver())
+						playButton.OnPressed();
+
+					if (quitButton.IsMouseOver())
+						quitButton.OnPressed();
+				}
+
+				if (event.type == SDL_MOUSEBUTTONUP)
+				{
+					playButton.OnRelease();
+					quitButton.OnRelease();
+				}
 
 				if (event.type == SDL_KEYDOWN)
 				{
 					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 					// Keybinds
-					if (!s_IsGamePaused)
+					if (s_GameState == GameState::kGameRunning)
 					{
 						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 						{
@@ -314,11 +356,14 @@ int main(int argc, char* args[])
 						}
 					}
 
-					if (!s_IsGameLost)
+					if (s_GameState != GameState::kGameLost && s_GameState != GameState::kGameMainMenu)
 					{
 						if (event.key.keysym.sym == SDLK_ESCAPE)
 						{
-							s_IsGamePaused = !s_IsGamePaused;
+							if(s_GameState == GameState::kGamePaused)
+								s_GameState = GameState::kGameRunning;
+							else
+								s_GameState = GameState::kGamePaused;
 						}
 					}
 				}
@@ -327,8 +372,10 @@ int main(int argc, char* args[])
 			// Clear screen
 			renderer.Clear();
 
-			if (!s_IsGameLost && !s_IsGamePaused)
+			if (s_GameState == GameState::kGameRunning)
 			{
+				timeInGame++;
+
 				// Check if any of the spawned pieces has reached the end of the grid
 				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
 					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
@@ -353,6 +400,9 @@ int main(int argc, char* args[])
 				{
 					lockedPieces.emplace_back(spawnPieces["bottom"]);
 					lockedPieces.emplace_back(spawnPieces["top"]);
+					PieceDropSound.Play();
+
+					// TODO: Check for matches
 
 					SpawnNewPair();
 				}
@@ -415,10 +465,10 @@ int main(int argc, char* args[])
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, gridPositionY, 10, (gridPositionY + 100)); // Top Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), (10 + 250), gridPositionY, (10 + 250), (gridPositionY + 100)); // top Line
 			SDL_RenderDrawLine(renderer.GetSDLRenderer(), 10, (gridPositionY + 100), (10 + 250), (gridPositionY + 100)); // Bottom Line
-			renderer.DrawText(scoreText, { 25, gridPositionY + 20 });
+			renderer.DrawText(scoreText, 25, gridPositionY + 20);
 
 			// Draw Menu's
-			if (s_IsGamePaused)
+			if (s_GameState == GameState::kGamePaused)
 			{
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
 				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
@@ -427,13 +477,27 @@ int main(int argc, char* args[])
 				renderer.DrawText(removePauseText, (SCREEN_WIDTH / 2) - (removePauseText.GetRectSize().first / 2), 300);
 			}
 
-			if (s_IsGameLost)
+			if (s_GameState == GameState::kGameLost)
 			{
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
 				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawText(gameOverText, (SCREEN_WIDTH / 2) - (gameOverText.GetRectSize().first / 2), 250);
 				GameOverMusic.Play(false);
+			}
+
+			if (s_GameState == GameState::kGameMainMenu)
+			{
+				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
+				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
+				renderer.DrawButton(playButton);
+				renderer.DrawButton(quitButton);
+				renderer.DrawText(howToPlayText, (SCREEN_WIDTH / 2) - (howToPlayText.GetRectSize().first / 2), 350);
+				for (int i = 0; i < controlsTexts.size(); ++i)
+				{
+					renderer.DrawText(controlsTexts[i], (SCREEN_WIDTH / 2) - (controlsTexts[i].GetRectSize().first / 2), 400 + (30 * i));
+				}
 			}
 
 			// Present

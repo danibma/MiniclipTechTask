@@ -51,11 +51,24 @@ void Renderer::DrawRenderable(Renderable& piece)
 	SDL_RenderCopy(m_Renderer, piece.GetTexture(), nullptr, &rect);
 }
 
-void Renderer::DrawText(Text& text, std::pair<int32_t, int32_t> position)
+void Renderer::DrawButton(Button& button)
+{
+	// Draw button background
+	auto [posX, posY] = button.GetPosition();
+	auto [sizeX, sizeY] = button.GetSize();
+	SDL_Rect rect = { posX, posY, sizeX, sizeY };
+
+	SDL_RenderCopy(m_Renderer, button.GetTexture(), nullptr, &rect);
+
+	// Draw button text
+	DrawText(button.GetText());
+}
+
+void Renderer::DrawText(Text& text)
 {
 	if (text.GetTexture())
 	{
-		auto [positionX, positionY] = position;
+		auto [positionX, positionY] = text.GetPosition();
 		auto [sizeX, sizeY] = text.GetRectSize();
 		SDL_Rect rect = { positionX, positionY, sizeX, sizeY };
 

@@ -6,7 +6,8 @@
 #include <SDL_ttf.h>
 
 #include "Renderable.h"
-#include "Text.h"
+#include "../UI/Text.h"
+#include "../UI/Button.h"
 
 class Renderer
 {
@@ -22,7 +23,8 @@ public:
 	SDL_Texture* CreateTexture(const char* path);
 
 	void DrawRenderable(Renderable& piece);
-	void DrawText(Text& text, std::pair<int32_t, int32_t> position);
+	void DrawButton(Button& button);
+	void DrawText(Text& text);
 	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 
 	inline SDL_Renderer* GetSDLRenderer() const { return m_Renderer; }

@@ -12,25 +12,26 @@
 #include "Sound/SoundEffect.h"
 
 // Game Requirements
-// - The game is played on a 8x16 grid ✅
+// ✅ - The game is played on a 8x16 grid 
 // - Objective of the game is to match same colored pieces
-// - There should be 4 different colored pieces ✅
+// ✅ - There should be 4 different colored pieces 
 // - Forming groups of 4 + pieces, in L, T, square or other fully connecting shapes destroys the pieces
-// - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair ✅
-// - Pairs are spawned above the top of the grid, dropping down until they are placed ✅
-// - The pair is considered placed when any of the pieces of the pair cannot be moved further down ✅
-// - The game is lost if it is not possible to place the pair within the grid ✅
-// - The player controls the pair’s movement by :
-//		- Moving the pair sideways ✅
-//		- Rotating the pair in 90 degree angles(left or right) ✅
-//		- Making the pair fall faster ✅
+// ✅ - Pieces always appear in pairs, each piece may randomly share or differ in color to the other piece in the pair 
+// ✅ - Pairs are spawned above the top of the grid, dropping down until they are placed 
+// ✅ - The pair is considered placed when any of the pieces of the pair cannot be moved further down 
+// ✅ - The game is lost if it is not possible to place the pair within the grid 
+// ✅ - The player controls the pair’s movement by :
+//		✅ - Moving the pair sideways 
+//		✅ - Rotating the pair in 90 degree angles(left or right) 
+//		✅ - Making the pair fall faster 
 // - Once the pair is placed:
-//		- The player can no longer move the pair ✅
-//		- The pieces will unpair and each of them will fall to the lowest position it can reach ✅
+//		✅ - The player can no longer move the pair 
+//		✅ - The pieces will unpair and each of them will fall to the lowest position it can reach 
 //		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
 // - The next pair will be spawned once all matches are cleared
-// - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
-// - Rotacao para fora da grid
+// ✅ - Rotacao para fora da grid
+// ✅ - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
+// 
 // Pluses
 // - Spawnar tanto na horizontal como na vertical
 
@@ -122,12 +123,12 @@ void SpawnNewPair()
 		uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
 
 		// top piece
-		color = dist(mt);
 		std::shared_ptr<Piece> topPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
 		topPiece->SetTexture(textureCache[Utils::PieceColorToString(topPiece->GetColor())]);
 		spawnPieces["top"] = topPiece;
 
 		// bottom piece
+		color = dist(mt);
 		std::shared_ptr<Piece> bottomPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
 		bottomPiece->SetTexture(textureCache[Utils::PieceColorToString(bottomPiece->GetColor())]);
 		spawnPieces["bottom"] = bottomPiece;
@@ -256,13 +257,63 @@ int main(int argc, char* args[])
 						}
 						else if (event.key.keysym.sym == SDLK_z)
 						{
-							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-								spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+							// TODO: Optimize this code
+							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
+							{
+								if (spawnPieces["top"]->GetRotation() != 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+							}
+							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
+							{
+								if (spawnPieces["top"]->GetRotation() == 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+							}
+							else
+							{
+								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+									spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+							}
+							
 						}
 						else if (event.key.keysym.sym == SDLK_x)
 						{
-							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-								spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
+							{
+								if (spawnPieces["top"]->GetRotation() == 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+							}
+							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
+							{
+								if (spawnPieces["top"]->GetRotation() != 0)
+								{
+									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+								}
+							}
+							else
+							{
+								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+									spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+							}
 						}
 					}
 

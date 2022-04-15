@@ -257,29 +257,27 @@ int main(int argc, char* args[])
 						}
 						else if (event.key.keysym.sym == SDLK_z)
 						{
-							// TODO: Optimize this code
+							bool canRotate = false;
+
+							// Check if the piece has space to rotate without getting out of the grid
 							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
 								if (spawnPieces["top"]->GetRotation() != 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 							}
 							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
 								if (spawnPieces["top"]->GetRotation() == 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 							}
 							else
+							{
+								canRotate = true;
+							}
+
+							if (canRotate)
 							{
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
 									spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
@@ -288,28 +286,27 @@ int main(int argc, char* args[])
 						}
 						else if (event.key.keysym.sym == SDLK_x)
 						{
+							bool canRotate = false;
+
+							// Check if the piece has space to rotate without getting out of the grid
 							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
 								if (spawnPieces["top"]->GetRotation() == 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 							}
 							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
 								if (spawnPieces["top"]->GetRotation() != 0)
-								{
-									if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-										spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
-								}
+									canRotate = true;
 							}
 							else
+							{
+								canRotate = true;
+							}
+
+							if (canRotate)
 							{
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
 									spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());

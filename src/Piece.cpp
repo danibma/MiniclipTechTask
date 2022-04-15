@@ -19,26 +19,6 @@ Piece::~Piece()
 	m_MoveSound.Destroy();
 }
 
-void Piece::Rotate(int32_t angle, const int32_t centerX, const int32_t centerY)
-{
-	if (!m_IsLocked)
-	{
-		m_CurrentRotation += angle;
-		if (m_CurrentRotation % 360 == 0)
-			m_CurrentRotation = 0;
-
-		float angleInRadians = ToRadians(angle);
-
-		float x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
-		float y = sin(angleInRadians) * (m_PositionX - centerX) + cos(angleInRadians) * (m_PositionY - centerY) + centerY;
-
-		m_PositionX = (int32_t)x;
-		m_PositionY = (int32_t)y;
-
-		m_MoveSound.Play();
-	}
-}
-
 void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint)
 {
 	if (!m_IsLocked)
@@ -47,12 +27,12 @@ void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint
 		if (m_CurrentRotation % 360 == 0)
 			m_CurrentRotation = 0;
 
-		float angleInRadians = ToRadians(angle);
+		double angleInRadians = ToRadians(angle);
 
 		auto [centerX, centerY] = centerPoint;
 
-		float x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
-		float y = sin(angleInRadians) * (m_PositionX - centerX) + cos(angleInRadians) * (m_PositionY - centerY) + centerY;
+		double x = cos(angleInRadians) * (m_PositionX - centerX) - sin(angleInRadians) * (m_PositionY - centerY) + centerX;
+		double y = sin(angleInRadians) * (m_PositionX - centerX) + cos(angleInRadians) * (m_PositionY - centerY) + centerY;
 
 		m_PositionX = (int32_t)x;
 		m_PositionY = (int32_t)y;

@@ -22,8 +22,8 @@ public:
 protected:
 	int32_t m_PositionX = 0;
 	int32_t m_PositionY = 0;
-	uint32_t m_Width = 0;
-	uint32_t m_Height = 0;
+	int32_t m_Width = 0;
+	int32_t m_Height = 0;
 
 	// We dont need to destroy this texture on the destructor,
 	// because every texture on the main program is getting cached

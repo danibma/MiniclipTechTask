@@ -280,7 +280,7 @@ int main(int argc, char* args[])
 							if (canRotate)
 							{
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-									spawnPieces["top"]->Rotate(-90.0f, spawnPieces["bottom"]->GetPosition());
+									spawnPieces["top"]->Rotate(-90, spawnPieces["bottom"]->GetPosition());
 							}
 							
 						}
@@ -309,7 +309,7 @@ int main(int argc, char* args[])
 							if (canRotate)
 							{
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-									spawnPieces["top"]->Rotate(90.0f, spawnPieces["bottom"]->GetPosition());
+									spawnPieces["top"]->Rotate(90, spawnPieces["bottom"]->GetPosition());
 							}
 						}
 					}

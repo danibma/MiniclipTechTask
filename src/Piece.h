@@ -78,7 +78,6 @@ public:
 
 	inline const bool IsLocked() { return m_IsLocked; }
 
-	void Rotate(int32_t angle, const int32_t centerX, const int32_t centerY);
 	void Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint);
 
 	/**

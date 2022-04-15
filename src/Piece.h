@@ -111,7 +111,6 @@ public:
 private:
 	PieceColor m_Color = PieceColor::None;
 	bool m_IsLocked = false;
-	SoundEffect m_MoveSound;
 	int32_t m_CurrentRotation = 0;
 };
 

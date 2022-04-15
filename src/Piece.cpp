@@ -11,12 +11,10 @@ Piece::Piece(PieceColor color, int32_t spawnPositionX, int32_t spawnPositionY)
 	m_PositionY = spawnPositionY;
 	m_Width = PIECE_SIZE;
 	m_Height = PIECE_SIZE;
-	m_MoveSound = SoundEffect("assets/sounds/sound_effects/piece_move.mp3");
 }
 
 Piece::~Piece()
 {
-	m_MoveSound.Destroy();
 }
 
 void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint)
@@ -36,8 +34,6 @@ void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint
 
 		m_PositionX = (int32_t)x;
 		m_PositionY = (int32_t)y;
-
-		m_MoveSound.Play();
 	}
 }
 
@@ -49,8 +45,6 @@ void Piece::Move(float x, float y)
 
 		m_PositionX += ((int32_t)x * PIECE_SIZE);
 		m_PositionY += ((int32_t)y * PIECE_SIZE);
-
-		m_MoveSound.Play();
 	}
 }
 

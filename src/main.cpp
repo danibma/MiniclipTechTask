@@ -226,6 +226,7 @@ int main(int argc, char* args[])
 	controlsTexts.emplace_back(renderer, "Rotate Right: X", teletoonControls);
 	controlsTexts.emplace_back(renderer, "Pause/Unpause: Escape", teletoonControls);
 
+	// Start on the main menu
 	s_GameState = GameState::kGameMainMenu;
 
 	while (s_IsRunning)
@@ -260,7 +261,6 @@ int main(int argc, char* args[])
 
 				if (event.type == SDL_KEYDOWN)
 				{
-					// TODO(Daniel): Make an option on main menu, thats called "Controls" and show this controls
 					// Keybinds
 					if (s_GameState == GameState::kGameRunning)
 					{
@@ -468,28 +468,26 @@ int main(int argc, char* args[])
 			renderer.DrawText(scoreText, 25, gridPositionY + 20);
 
 			// Draw Menu's
-			if (s_GameState == GameState::kGamePaused)
+			switch (s_GameState)
 			{
+			SDL_Rect rect;
+			case GameState::kGamePaused:
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
-				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				 rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawText(pausedText, (SCREEN_WIDTH / 2) - (pausedText.GetRectSize().first / 2), 250);
 				renderer.DrawText(removePauseText, (SCREEN_WIDTH / 2) - (removePauseText.GetRectSize().first / 2), 300);
-			}
-
-			if (s_GameState == GameState::kGameLost)
-			{
+				break;
+			case GameState::kGameLost:
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
-				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawText(gameOverText, (SCREEN_WIDTH / 2) - (gameOverText.GetRectSize().first / 2), 250);
 				GameOverMusic.Play(false);
-			}
-
-			if (s_GameState == GameState::kGameMainMenu)
-			{
+				break;
+			case GameState::kGameMainMenu:
 				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
-				SDL_Rect rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+				rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawButton(playButton);
 				renderer.DrawButton(quitButton);
@@ -498,6 +496,7 @@ int main(int argc, char* args[])
 				{
 					renderer.DrawText(controlsTexts[i], (SCREEN_WIDTH / 2) - (controlsTexts[i].GetRectSize().first / 2), 400 + (30 * i));
 				}
+				break;
 			}
 
 			// Present

@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#define ToRadians(x) (x * (M_PI / 180))
-
 Piece::Piece(PieceColor color, int32_t spawnPositionX, int32_t spawnPositionY)
 {
 	m_Color		= color;

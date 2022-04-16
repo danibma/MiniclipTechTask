@@ -10,6 +10,8 @@
 
 #define PIECE_SIZE 32
 
+#define ToRadians(x) (x * (M_PI / 180))
+
 enum class PieceColor : uint32_t
 {
 	None,

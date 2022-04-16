@@ -31,9 +31,7 @@
 //		- Once there is no movement(all pieces placed), matches are validated and removed from the grid
 // ✅ - The next pair will be spawned once all matches are cleared
 // ✅ - Check the following link for reference: youtube.com/watch?v=YJjRJ_4gcUw
-// 
-// Pluses
-// - Spawnar tanto na horizontal como na vertical
+
 
 #define MAX_FRAMERATE 60
 
@@ -376,6 +374,15 @@ int main(int argc, char* args[])
 			{
 				timeInGame++;
 
+				// Move spawned pieces every 1sec
+				if (timeInGame == (MAX_FRAMERATE * 1))
+				{
+					for (auto& piece : spawnPieces)
+						piece.second->Move(0, 1);
+
+					timeInGame = 0;
+				}
+
 				// Check if any of the spawned pieces has reached the end of the grid
 				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
 					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
@@ -403,7 +410,38 @@ int main(int argc, char* args[])
 					PieceDropSound.Play();
 
 					// TODO: Check for matches
+					for (const auto& piece : lockedPieces)
+					{
+						auto [centerX, centerY] = piece->GetPosition();
 
+						for (int i = 0; i <= 3; i++)
+						{
+							// start out checking the top piece
+							int32_t nextPieceX = centerX;
+							int32_t nextPieceY = centerY - PIECE_SIZE;
+
+							double angleInRadians = ToRadians(90 * i);
+
+							double x = cos(angleInRadians) * (nextPieceX - centerX) - sin(angleInRadians) * (nextPieceY - centerY) + centerX;
+							double y = sin(angleInRadians) * (nextPieceX - centerX) + cos(angleInRadians) * (nextPieceY - centerY) + centerY;
+
+							nextPieceX = (int32_t)x;
+							nextPieceY = (int32_t)y;
+
+							auto nextPiece = std::find_if(lockedPieces.begin(), lockedPieces.end(), [&](std::shared_ptr<Piece> currentPiece) {
+								auto [currentX, currentY] = currentPiece->GetPosition();
+
+								return currentX == nextPieceX && currentY == nextPieceY;
+							});
+
+							if (nextPiece != lockedPieces.end() && nextPiece[0] != piece)
+							{
+								printf("Found piece at %d degrees\n", 90 * i);
+							}
+						}
+
+						printf("-------------------\n");
+					}
 					SpawnNewPair();
 				}
 				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
@@ -426,15 +464,6 @@ int main(int argc, char* args[])
 						}
 					}
 				}
-
-				// Move spawned pieces every 1sec
-				if (timeInGame == (MAX_FRAMERATE * 1))
-				{
-					for (auto& piece : spawnPieces)
-						piece.second->Move(0, 1);
-
-					timeInGame = 0;
-				}
 			}
 
 			// Draw
@@ -448,7 +477,7 @@ int main(int argc, char* args[])
 			{
 				// Only render the spawn pieces when they are inside the grid,
 				// don't render them when they are above it
-				//if (piece.second->GetPosition().second >= gridPositionY)
+				if (piece.second->GetPosition().second >= gridPositionY)
 					renderer.DrawRenderable(*piece.second);
 			}
 
@@ -486,7 +515,7 @@ int main(int argc, char* args[])
 				GameOverMusic.Play(false);
 				break;
 			case GameState::kGameMainMenu:
-				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 150);
+				SDL_SetRenderDrawColor(renderer.GetSDLRenderer(), 0, 0, 0, 220);
 				rect = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 				SDL_RenderFillRect(renderer.GetSDLRenderer(), &rect);
 				renderer.DrawButton(playButton);

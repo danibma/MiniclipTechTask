@@ -137,6 +137,48 @@ void SpawnNewPair()
 	}
 }
 
+uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> oldPiece = nullptr)
+{
+	auto [centerX, centerY] = piece->GetPosition();
+
+	uint32_t combinedPieces = 0;
+
+	for (int i = 0; i <= 3; i++)
+	{
+		// start out checking the top piece
+		int32_t nextPieceX = centerX;
+		int32_t nextPieceY = centerY - PIECE_SIZE;
+
+		double angleInRadians = ToRadians(90 * i);
+
+		double x = cos(angleInRadians) * (nextPieceX - centerX) - sin(angleInRadians) * (nextPieceY - centerY) + centerX;
+		double y = sin(angleInRadians) * (nextPieceX - centerX) + cos(angleInRadians) * (nextPieceY - centerY) + centerY;
+
+		nextPieceX = (int32_t)x;
+		nextPieceY = (int32_t)y;
+
+		auto nextPiece = std::find_if(lockedPieces.begin(), lockedPieces.end(), [&](std::shared_ptr<Piece> currentPiece) {
+			auto [currentX, currentY] = currentPiece->GetPosition();
+
+			return currentX == nextPieceX && currentY == nextPieceY;
+		});
+
+		if (nextPiece != lockedPieces.end() && nextPiece[0] != piece)
+		{
+			if (nextPiece[0] == oldPiece)
+				continue;
+
+			if (nextPiece[0]->GetColor() == piece->GetColor())
+			{
+				combinedPieces ++;
+				combinedPieces += GetCombinedPieces(nextPiece[0], piece);
+			}
+		}
+	}
+
+	return combinedPieces;
+}
+
 int main(int argc, char* args[])
 {
 	//The window we'll be rendering to
@@ -394,6 +436,7 @@ int main(int argc, char* args[])
 				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
 				for (const auto& piece : lockedPieces)
 				{
+					// BUG: if we move to one of the sides, into a piece, the piece goes inside the other one
 					if (piece->IsCollidingWithPiece(*spawnPieces["top"]))
 						spawnPieces["top"]->SetLocked(true);
 
@@ -412,35 +455,12 @@ int main(int argc, char* args[])
 					// TODO: Check for matches
 					for (const auto& piece : lockedPieces)
 					{
-						auto [centerX, centerY] = piece->GetPosition();
+						// BUG: Squares are crashing the game
+						uint32_t combinedPieces = GetCombinedPieces(piece);
+						combinedPieces++;
 
-						for (int i = 0; i <= 3; i++)
-						{
-							// start out checking the top piece
-							int32_t nextPieceX = centerX;
-							int32_t nextPieceY = centerY - PIECE_SIZE;
-
-							double angleInRadians = ToRadians(90 * i);
-
-							double x = cos(angleInRadians) * (nextPieceX - centerX) - sin(angleInRadians) * (nextPieceY - centerY) + centerX;
-							double y = sin(angleInRadians) * (nextPieceX - centerX) + cos(angleInRadians) * (nextPieceY - centerY) + centerY;
-
-							nextPieceX = (int32_t)x;
-							nextPieceY = (int32_t)y;
-
-							auto nextPiece = std::find_if(lockedPieces.begin(), lockedPieces.end(), [&](std::shared_ptr<Piece> currentPiece) {
-								auto [currentX, currentY] = currentPiece->GetPosition();
-
-								return currentX == nextPieceX && currentY == nextPieceY;
-							});
-
-							if (nextPiece != lockedPieces.end() && nextPiece[0] != piece)
-							{
-								printf("Found piece at %d degrees\n", 90 * i);
-							}
-						}
-
-						printf("-------------------\n");
+						if(combinedPieces >= 4)
+							printf("Destroyed %d pieces of %s color\n", combinedPieces, Utils::PieceColorToString(piece->GetColor()));
 					}
 					SpawnNewPair();
 				}

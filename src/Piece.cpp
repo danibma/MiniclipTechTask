@@ -72,7 +72,7 @@ bool Piece::IsCollidingWithPiece(Piece& piece)
 	auto [positionX, positionY] = piece.GetPosition();
 	auto [sizeX, sizeY] = piece.GetSize();
 
-	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX)) return false;
+	if ((m_PositionX + m_Width) < (positionX) || (m_PositionX) > (positionX + sizeX)) return false;
 	if ((m_PositionY + m_Height) < (positionY) || (m_PositionY) > (positionY + sizeY)) return false;
 
 	return true;

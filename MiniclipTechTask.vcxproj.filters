@@ -1,72 +1,72 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="src">
+      <UniqueIdentifier>{f5a25007-4581-42d0-843d-06fba0674fea}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="src\Renderer">
+      <UniqueIdentifier>{81f96e67-076d-435a-8091-66fef47c2d00}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="src\Sound">
+      <UniqueIdentifier>{43a793b9-4a46-4b39-b77b-069134b7e06c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\UI">
+      <UniqueIdentifier>{fe02f44e-a6dd-4572-8c1f-c20cfba076e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Piece.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sound\Music.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sound\SoundEffect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UI\Text.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\UI\Font.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\Renderable.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Renderer.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sound\Music.cpp">
+      <Filter>src\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sound\SoundEffect.cpp">
+      <Filter>src\Sound</Filter>
     </ClCompile>
     <ClCompile Include="src\UI\Button.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\Font.cpp">
+      <Filter>src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UI\Text.cpp">
+      <Filter>src\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Piece.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Renderer\Renderer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Renderer\Renderable.h">
+      <Filter>src\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Piece.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Renderer\Renderer.h">
+      <Filter>src\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Sound\Music.h">
-      <Filter>Header Files</Filter>
+      <Filter>src\Sound</Filter>
     </ClInclude>
     <ClInclude Include="src\Sound\SoundEffect.h">
-      <Filter>Header Files</Filter>
+      <Filter>src\Sound</Filter>
     </ClInclude>
     <ClInclude Include="src\UI\Text.h">
-      <Filter>Header Files</Filter>
+      <Filter>src\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\UI\Font.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Renderer\Renderable.h">
-      <Filter>Header Files</Filter>
+      <Filter>src\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\UI\Button.h">
-      <Filter>Header Files</Filter>
+      <Filter>src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Piece.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

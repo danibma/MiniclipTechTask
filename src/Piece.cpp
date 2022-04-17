@@ -15,6 +15,18 @@ Piece::~Piece()
 {
 }
 
+const PieceRotation Piece::GetRotation() const
+{
+	if (m_CurrentRotation != 0 && m_CurrentRotation % 180 == 0)
+		return PieceRotation::Down;
+	else if (m_CurrentRotation == 90 || m_CurrentRotation == -270)
+		return PieceRotation::Right;
+	else if (m_CurrentRotation == -90 || m_CurrentRotation == 270)
+		return PieceRotation::Left;
+	else 
+		return PieceRotation::Top;
+}
+
 void Piece::Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint)
 {
 	if (!m_IsLocked)
@@ -73,7 +85,7 @@ int8_t Piece::IsCollidingWithPieceHorizontally(Piece& piece)
 	if (((m_PositionX + m_Width) == positionX) && positionY == m_PositionY)
 		return 1;
 
-	if (m_PositionX <= (positionX + sizeX) && positionY == m_PositionY)
+	if (m_PositionX == (positionX + sizeX) && positionY == m_PositionY)
 		return -1;
 
 	return 0;

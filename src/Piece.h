@@ -12,13 +12,21 @@
 
 #define ToRadians(x) (x * (M_PI / 180))
 
-enum class PieceColor : uint32_t
+enum class PieceColor
 {
 	None,
 	Green,
 	LightBlue,
 	Orange,
 	Red
+};
+
+enum class PieceRotation
+{
+	Top,
+	Left,
+	Right,
+	Down
 };
 
 namespace Utils
@@ -76,7 +84,7 @@ public:
 	~Piece();
 
 	inline const PieceColor& GetColor() const { return m_Color; }
-	inline const int32_t GetRotation() const { return m_CurrentRotation; }
+	const PieceRotation GetRotation() const;
 
 	inline const bool IsLocked() { return m_IsLocked; }
 
@@ -112,7 +120,7 @@ public:
 	 *
 	 * @param Piece& piece
 	 *
-	 * @returns 1 if it can't move down and 0 if it isn't colliding with piece
+	 * @returns 1 if it is colliding with any piece below it and 0 if it isn't colliding with piece
 	 */
 	int8_t IsCollidingWithPieceVertically(Piece& piece);
 
@@ -121,7 +129,7 @@ public:
 	 *
 	 * @param Piece& piece
 	 *
-	 * @returns -1 if it can't move to the left, 1 if it can't move to the right and 0 if it isn't colliding with any piece
+	 * @returns -1 if it is colliding with any piece on the left, 1 if it is colliding with any piece on the right and 0 if it isn't colliding with any piece
 	 */
 	int8_t IsCollidingWithPieceHorizontally(Piece& piece);
 

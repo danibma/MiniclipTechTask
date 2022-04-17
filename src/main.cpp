@@ -377,14 +377,14 @@ int main(int argc, char* args[])
 							// Check if the piece has space to rotate without getting out of the grid
 							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
-								if (spawnPieces["top"]->GetRotation() != 0)
+								if (spawnPieces["top"]->GetRotation() != PieceRotation::Top)
 									canRotate = true;
 							}
 							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
-								if (spawnPieces["top"]->GetRotation() == 0)
+								if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
 									canRotate = true;
-								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
+								else if (spawnPieces["top"]->GetRotation() != PieceRotation::Down)
 									canRotate = true;
 							}
 							else
@@ -397,13 +397,13 @@ int main(int argc, char* args[])
 							{
 								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == -1)
 								{
-									if (spawnPieces["top"]->GetRotation() == 0)
+									if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
 										canRotate = false;
 
 								}
 								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
 								{
-									if (spawnPieces["top"]->GetRotation() != 0 && spawnPieces["top"]->GetRotation() % 180 == 0)
+									if (spawnPieces["top"]->GetRotation() == PieceRotation::Down)
 										canRotate = false;
 								}
 							}
@@ -422,14 +422,14 @@ int main(int argc, char* args[])
 							// Check if the piece has space to rotate without getting out of the grid
 							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
-								if (spawnPieces["top"]->GetRotation() == 0)
+								if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
 									canRotate = true;
-								else if (spawnPieces["top"]->GetRotation() % 180 != 0)
+								else if (spawnPieces["top"]->GetRotation() != PieceRotation::Down)
 									canRotate = true;
 							}
 							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
-								if (spawnPieces["top"]->GetRotation() != 0)
+								if (spawnPieces["top"]->GetRotation() != PieceRotation::Top)
 									canRotate = true;
 							}
 							else
@@ -442,13 +442,13 @@ int main(int argc, char* args[])
 							{
 								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == -1)
 								{
-									if (spawnPieces["top"]->GetRotation() != 0 && spawnPieces["top"]->GetRotation() % 180 == 0)
+									if (spawnPieces["top"]->GetRotation() == PieceRotation::Down)
 										canRotate = false;
 									
 								}
 								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
 								{
-									if (spawnPieces["top"]->GetRotation() == 0)
+									if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
 										canRotate = false;
 								}
 							}
@@ -516,7 +516,7 @@ int main(int argc, char* args[])
 					lockedPieces.emplace_back(spawnPieces["top"]);
 					PieceDropSound.Play();
 
-					// TODO: Check for matches
+					// Check for matches
 					for (const auto& piece : lockedPieces)
 					{
 						// BUG: Squares are crashing the game
@@ -526,6 +526,7 @@ int main(int argc, char* args[])
 						if(combinedPieces >= 4)
 							printf("Destroyed %d pieces of %s color\n", combinedPieces, Utils::PieceColorToString(piece->GetColor()));
 					}
+
 					SpawnNewPair();
 				}
 				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
@@ -540,8 +541,8 @@ int main(int argc, char* args[])
 
 					if (spawnPieces["bottom"]->IsCollidingWithPieceVertically(*spawnPieces["top"]))
 					{
-						if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||
-							spawnPieces["top"]->GetRotation() % 180 == 0)
+						if (spawnPieces["top"]->GetRotation() == PieceRotation::Down ||
+							spawnPieces["top"]->GetRotation() == PieceRotation::Top)
 						{
 							spawnPieces["top"]->SetLocked(true);
 							spawnPieces["bottom"]->SetLocked(true);

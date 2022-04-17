@@ -95,7 +95,7 @@ public:
 	 *
 	 * @returns true if it is colliding, false if it isn't
 	 */
-	int8_t IsCollidingVertically(int32_t limitY, int32_t limitHeight);
+	bool IsCollidingVertically(int32_t limitY, int32_t limitHeight);
 
 	/**
 	 * Check if a piece is colliding with any type of limit horizontally
@@ -106,7 +106,13 @@ public:
 	 * @returns -1 if it can't move to the left, 1 if it can't move to the right and 0 if it isn't colliding with any limit
 	 */
 	int8_t IsCollidingHoriontally(int32_t limitX, int32_t limitWidth);
-	bool IsCollidingWithPiece(Piece& piece);
+
+	// The only difference between the horizontally version of this function and the vertically one,
+	// is that the vertically version won't return true if the x position's are the same and
+	// the horizontally one won't return true if the y position's are the same,
+	// that way the corners won't count as collision when it isn't needed
+	bool IsCollidingWithPieceVertically(Piece& piece);
+	bool IsCollidingWithPieceHorizontally(Piece& piece);
 
 	inline void SetLocked(bool value) { m_IsLocked = value; }
 

@@ -284,19 +284,22 @@ int main(int argc, char* args[])
 				if (event.type == SDL_QUIT)
 					s_IsRunning = false;
 
-				if (event.type == SDL_MOUSEBUTTONDOWN)
+				if (s_GameState == GameState::kGameMainMenu)
 				{
-					if (playButton.IsMouseOver())
-						playButton.OnPressed();
+					if (event.type == SDL_MOUSEBUTTONDOWN)
+					{
+						if (playButton.IsMouseOver())
+							playButton.OnPressed();
 
-					if (quitButton.IsMouseOver())
-						quitButton.OnPressed();
-				}
+						if (quitButton.IsMouseOver())
+							quitButton.OnPressed();
+					}
 
-				if (event.type == SDL_MOUSEBUTTONUP)
-				{
-					playButton.OnRelease();
-					quitButton.OnRelease();
+					if (event.type == SDL_MOUSEBUTTONUP)
+					{
+						playButton.OnRelease();
+						quitButton.OnRelease();
+					}
 				}
 
 				if (event.type == SDL_KEYDOWN)
@@ -311,8 +314,23 @@ int main(int argc, char* args[])
 								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
 									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
 								{
-									spawnPieces["bottom"]->Move(-1, 0);
-									spawnPieces["top"]->Move(-1, 0);
+									// Check if the spawn pieces are colliding with any of the locked pieces
+									bool canMove = true;
+
+									for (const auto& piece : lockedPieces)
+									{
+										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["top"]))
+											canMove = false;
+
+										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["bottom"]))
+											canMove = false;
+									}
+
+									if (canMove)
+									{
+										spawnPieces["bottom"]->Move(-1, 0);
+										spawnPieces["top"]->Move(-1, 0);
+									}
 								}
 							}
 						}
@@ -323,8 +341,23 @@ int main(int argc, char* args[])
 								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
 									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
 								{
-									spawnPieces["bottom"]->Move(1, 0);
-									spawnPieces["top"]->Move(1, 0);
+									// Check if the spawn pieces are colliding with any of the locked pieces
+									bool canMove = true;
+
+									for (const auto& piece : lockedPieces)
+									{
+										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["top"]))
+											canMove = false;
+
+										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["bottom"]))
+											canMove = false;
+									}
+
+									if (canMove)
+									{
+										spawnPieces["bottom"]->Move(1, 0);
+										spawnPieces["top"]->Move(1, 0);
+									}
 								}
 							}
 						}
@@ -436,11 +469,10 @@ int main(int argc, char* args[])
 				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
 				for (const auto& piece : lockedPieces)
 				{
-					// BUG: if we move to one of the sides, into a piece, the piece goes inside the other one
-					if (piece->IsCollidingWithPiece(*spawnPieces["top"]))
+					if (piece->IsCollidingWithPieceVertically(*spawnPieces["top"]))
 						spawnPieces["top"]->SetLocked(true);
 
-					if (piece->IsCollidingWithPiece(*spawnPieces["bottom"]))
+					if (piece->IsCollidingWithPieceVertically(*spawnPieces["bottom"]))
 						spawnPieces["bottom"]->SetLocked(true);
 				}
 
@@ -474,7 +506,7 @@ int main(int argc, char* args[])
 						timeInGame = 0;
 					}
 
-					if (spawnPieces["bottom"]->IsCollidingWithPiece(*spawnPieces["top"]))
+					if (spawnPieces["bottom"]->IsCollidingWithPieceVertically(*spawnPieces["top"]))
 					{
 						if (spawnPieces["bottom"]->GetRotation() % 180 == 0 ||
 							spawnPieces["top"]->GetRotation() % 180 == 0)

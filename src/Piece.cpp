@@ -46,12 +46,10 @@ void Piece::Move(float x, float y)
 	}
 }
 
-int8_t Piece::IsCollidingVertically(int32_t limitY, int32_t limitHeight)
+bool Piece::IsCollidingVertically(int32_t limitY, int32_t limitHeight)
 {
 	if (m_PositionY >= (limitY + limitHeight) - PIECE_SIZE)
-	{
 		return true;
-	}
 
 	return false;
 }
@@ -67,12 +65,23 @@ int8_t Piece::IsCollidingHoriontally(int32_t limitX, int32_t limitWidth)
 	return 0;
 }
 
-bool Piece::IsCollidingWithPiece(Piece& piece)
+bool Piece::IsCollidingWithPieceHorizontally(Piece& piece)
 {
 	auto [positionX, positionY] = piece.GetPosition();
 	auto [sizeX, sizeY] = piece.GetSize();
 
 	if ((m_PositionX + m_Width) < (positionX) || (m_PositionX) > (positionX + sizeX)) return false;
+	if ((m_PositionY + m_Height) <= (positionY) || (m_PositionY) >= (positionY + sizeY)) return false;
+
+	return true;
+}
+
+bool Piece::IsCollidingWithPieceVertically(Piece& piece)
+{
+	auto [positionX, positionY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
+
+	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX)) return false;
 	if ((m_PositionY + m_Height) < (positionY) || (m_PositionY) > (positionY + sizeY)) return false;
 
 	return true;

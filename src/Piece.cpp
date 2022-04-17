@@ -65,24 +65,30 @@ int8_t Piece::IsCollidingHoriontally(int32_t limitX, int32_t limitWidth)
 	return 0;
 }
 
-bool Piece::IsCollidingWithPieceHorizontally(Piece& piece)
+int8_t Piece::IsCollidingWithPieceHorizontally(Piece& piece)
 {
 	auto [positionX, positionY] = piece.GetPosition();
 	auto [sizeX, sizeY] = piece.GetSize();
 
-	if ((m_PositionX + m_Width) < (positionX) || (m_PositionX) > (positionX + sizeX)) return false;
-	if ((m_PositionY + m_Height) <= (positionY) || (m_PositionY) >= (positionY + sizeY)) return false;
+	if (((m_PositionX + m_Width) == positionX) && positionY == m_PositionY)
+		return 1;
 
-	return true;
+	if (m_PositionX <= (positionX + sizeX) && positionY == m_PositionY)
+		return -1;
+
+	return 0;
 }
 
-bool Piece::IsCollidingWithPieceVertically(Piece& piece)
+int8_t Piece::IsCollidingWithPieceVertically(Piece& piece)
 {
 	auto [positionX, positionY] = piece.GetPosition();
 	auto [sizeX, sizeY] = piece.GetSize();
 
-	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX)) return false;
-	if ((m_PositionY + m_Height) < (positionY) || (m_PositionY) > (positionY + sizeY)) return false;
+	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX))
+		return 0;
 
-	return true;
+	if ((m_PositionY + m_Height) < (positionY) || (m_PositionY) > (positionY + sizeY)) 
+		return 0;
+
+	return 1;
 }

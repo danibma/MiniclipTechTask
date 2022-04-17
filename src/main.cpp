@@ -319,10 +319,10 @@ int main(int argc, char* args[])
 
 									for (const auto& piece : lockedPieces)
 									{
-										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["top"]))
+										if (spawnPieces["top"]->IsCollidingWithPieceHorizontally(*piece) == -1)
 											canMove = false;
 
-										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["bottom"]))
+										if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == -1)
 											canMove = false;
 									}
 
@@ -346,10 +346,10 @@ int main(int argc, char* args[])
 
 									for (const auto& piece : lockedPieces)
 									{
-										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["top"]))
+										if (spawnPieces["top"]->IsCollidingWithPieceHorizontally(*piece) == 1)
 											canMove = false;
 
-										if (piece->IsCollidingWithPieceHorizontally(*spawnPieces["bottom"]))
+										if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
 											canMove = false;
 									}
 
@@ -392,6 +392,22 @@ int main(int argc, char* args[])
 								canRotate = true;
 							}
 
+							// Check if the piece has space to rotate and won't collide with any locked piece
+							for (const auto& piece : lockedPieces)
+							{
+								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == -1)
+								{
+									if (spawnPieces["top"]->GetRotation() == 0)
+										canRotate = false;
+
+								}
+								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
+								{
+									if (spawnPieces["top"]->GetRotation() != 0 && spawnPieces["top"]->GetRotation() % 180 == 0)
+										canRotate = false;
+								}
+							}
+
 							if (canRotate)
 							{
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
@@ -419,6 +435,22 @@ int main(int argc, char* args[])
 							else
 							{
 								canRotate = true;
+							}
+
+							// Check if the piece has space to rotate and won't collide with any locked piece
+							for (const auto& piece : lockedPieces)
+							{
+								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == -1)
+								{
+									if (spawnPieces["top"]->GetRotation() != 0 && spawnPieces["top"]->GetRotation() % 180 == 0)
+										canRotate = false;
+									
+								}
+								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
+								{
+									if (spawnPieces["top"]->GetRotation() == 0)
+										canRotate = false;
+								}
 							}
 
 							if (canRotate)

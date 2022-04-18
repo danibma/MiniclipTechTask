@@ -195,14 +195,14 @@ int main(int argc, char* args[])
 	// Initialize Renderer
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
-	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
+	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 37);
 	Text pausedText(renderer, "Game Paused!", teletoonInGame);
 	Text removePauseText(renderer, "Press Escape again to unpause!", teletoonInGame);
 	Text gameOverText(renderer, "Game Over!", teletoonInGame);
 
 	// Score
 	uint32_t score = 0;
-	char scoreBuffer[50] = "Score: 0";
+	char scoreBuffer[16] = "Score: 0";
 	Text scoreText(renderer, scoreBuffer, teletoonInGame);
 
 	//Timer

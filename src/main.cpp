@@ -522,8 +522,6 @@ int main(int argc, char* args[])
 					for (const auto& piece : lockedPieces)
 					{
 						uint32_t combinedPiecesCount = GetCombinedPieces(piece);
-						combinedPiecesCount++;
-						combinedPieces.emplace_back(piece);
 
 						if (combinedPiecesCount >= 4)
 						{

@@ -15,21 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer\Renderable.cpp">
-      <Filter>src\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer\Renderer.cpp">
-      <Filter>src\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sound\Music.cpp">
-      <Filter>src\Sound</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Sound\SoundEffect.cpp">
-      <Filter>src\Sound</Filter>
-    </ClCompile>
     <ClCompile Include="src\UI\Button.cpp">
       <Filter>src\UI</Filter>
     </ClCompile>
@@ -39,16 +24,34 @@
     <ClCompile Include="src\UI\Text.cpp">
       <Filter>src\UI</Filter>
     </ClCompile>
+    <ClCompile Include="src\Sound\Music.cpp">
+      <Filter>src\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Sound\SoundEffect.cpp">
+      <Filter>src\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Renderable.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Renderer.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\Piece.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Renderer\Renderable.h">
-      <Filter>src\Renderer</Filter>
+    <ClInclude Include="src\UI\Button.h">
+      <Filter>src\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\Renderer\Renderer.h">
-      <Filter>src\Renderer</Filter>
+    <ClInclude Include="src\UI\Font.h">
+      <Filter>src\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\UI\Text.h">
+      <Filter>src\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\Sound\Music.h">
       <Filter>src\Sound</Filter>
@@ -56,14 +59,11 @@
     <ClInclude Include="src\Sound\SoundEffect.h">
       <Filter>src\Sound</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\Text.h">
-      <Filter>src\UI</Filter>
+    <ClInclude Include="src\Renderer\Renderable.h">
+      <Filter>src\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\Font.h">
-      <Filter>src\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\UI\Button.h">
-      <Filter>src\UI</Filter>
+    <ClInclude Include="src\Renderer\Renderer.h">
+      <Filter>src\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Piece.h">
       <Filter>src</Filter>

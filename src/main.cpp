@@ -54,6 +54,7 @@ Renderer renderer;
 
 std::array<bool, 8> occupiedCells;
 
+std::vector<std::shared_ptr<Piece>> combinedPieces;
 std::vector<std::shared_ptr<Piece>> lockedPieces;
 std::unordered_map<const char*, std::shared_ptr<Piece>> spawnPieces;
 
@@ -137,11 +138,11 @@ void SpawnNewPair()
 	}
 }
 
-uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> oldPiece = nullptr)
+uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece)
 {
 	auto [centerX, centerY] = piece->GetPosition();
 
-	uint32_t combinedPieces = 0;
+	uint32_t combinedPiecesCount = 0;
 
 	for (int i = 0; i <= 3; i++)
 	{
@@ -165,18 +166,19 @@ uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> 
 
 		if (nextPiece != lockedPieces.end() && nextPiece[0] != piece)
 		{
-			if (nextPiece[0] == oldPiece)
+			if (std::find(combinedPieces.begin(), combinedPieces.end(), nextPiece[0]) != combinedPieces.end())
 				continue;
 
 			if (nextPiece[0]->GetColor() == piece->GetColor())
 			{
-				combinedPieces ++;
-				combinedPieces += GetCombinedPieces(nextPiece[0], piece);
+				combinedPieces.emplace_back(nextPiece[0]);
+				combinedPiecesCount++;
+				combinedPiecesCount += GetCombinedPieces(nextPiece[0]);
 			}
 		}
 	}
 
-	return combinedPieces;
+	return combinedPiecesCount;
 }
 
 int main(int argc, char* args[])
@@ -519,12 +521,19 @@ int main(int argc, char* args[])
 					// Check for matches
 					for (const auto& piece : lockedPieces)
 					{
-						// BUG: Squares are crashing the game
-						uint32_t combinedPieces = GetCombinedPieces(piece);
-						combinedPieces++;
+						uint32_t combinedPiecesCount = GetCombinedPieces(piece);
+						combinedPiecesCount++;
+						combinedPieces.emplace_back(piece);
 
-						if(combinedPieces >= 4)
-							printf("Destroyed %d pieces of %s color\n", combinedPieces, Utils::PieceColorToString(piece->GetColor()));
+						if (combinedPiecesCount >= 4)
+						{
+							for (auto& combinedPiece : combinedPieces)
+								lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
+
+ 							break;
+						}
+
+						combinedPieces.clear();
 					}
 
 					SpawnNewPair();

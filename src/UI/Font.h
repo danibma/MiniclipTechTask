@@ -8,7 +8,7 @@ class Font
 {
 public:
 	Font(const char* path, int32_t size);
-	~Font();
+	void CloseFont();
 
 	inline TTF_Font* GetTTFFont() const { return m_Font; }
 	inline const int32_t GetSize() const { return m_Size; }

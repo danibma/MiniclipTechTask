@@ -9,7 +9,7 @@ Font::Font(const char* path, int32_t size) : m_Size(size)
 	}
 }
 
-Font::~Font()
+void Font::CloseFont()
 {
 	TTF_CloseFont(m_Font);
 }

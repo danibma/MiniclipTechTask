@@ -196,10 +196,14 @@ int main(int argc, char* args[])
 	renderer.Init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	Font teletoonInGame("assets/Fonts/Teletoon.ttf", 42);
-	Text scoreText(renderer, "Score: 0", teletoonInGame);
 	Text pausedText(renderer, "Game Paused!", teletoonInGame);
 	Text removePauseText(renderer, "Press Escape again to unpause!", teletoonInGame);
 	Text gameOverText(renderer, "Game Over!", teletoonInGame);
+
+	// Score
+	uint32_t score = 0;
+	char scoreBuffer[50] = "Score: 0";
+	Text scoreText(renderer, scoreBuffer, teletoonInGame);
 
 	//Timer
 	float lastFrame = 0;
@@ -497,7 +501,12 @@ int main(int argc, char* args[])
 						{
 							for (auto& combinedPiece : combinedPieces)
 								lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
+							
+							score += 5 * combinedPiecesCount;
+							scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
 
+							// TODO: not combined pieces move down until they cant move anymore
+							// TODO: destroy multiple combinations of pieces, right now is just destroying one combination
  							break;
 						}
 
@@ -608,6 +617,10 @@ int main(int argc, char* args[])
 	GameOverMusic.Destroy();
 	PieceDropSound.Destroy();
 	PieceGroupRemoveSound.Destroy();
+
+	teletoonInGame.CloseFont();
+	teletoonControlsTitle.CloseFont();
+	teletoonControls.CloseFont();
 
 	for (const auto& texture : textureCache)
 		SDL_DestroyTexture(texture.second);

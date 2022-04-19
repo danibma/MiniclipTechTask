@@ -263,6 +263,148 @@ int main(int argc, char* args[])
 		{
 			lastFrame = time;
 
+			if (s_GameState == GameState::kGameRunning)
+			{
+				timeInGame++;
+
+				// Check if any of the spawned pieces has reached the end of the grid
+				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
+					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
+				{
+					spawnPieces["bottom"]->SetLocked(true);
+					spawnPieces["top"]->SetLocked(true);
+				}
+
+				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
+				for (const auto& piece : lockedPieces)
+				{
+					if (piece->IsCollidingWithPieceVertically(*spawnPieces["top"]))
+						spawnPieces["top"]->SetLocked(true);
+
+					if (piece->IsCollidingWithPieceVertically(*spawnPieces["bottom"]))
+						spawnPieces["bottom"]->SetLocked(true);
+				}
+
+				// If both spawned pieces are locked, check the matches, 
+				// put the spawned pieces inside the locked pieces vector and spawn new ones
+				if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
+				{
+					lockedPieces.emplace_back(spawnPieces["bottom"]);
+					lockedPieces.emplace_back(spawnPieces["top"]);
+					spawnPieces.clear();
+					
+					PieceDropSound.Play();
+
+					while (true)
+					{
+						// Check for matches
+						for (const auto& piece : lockedPieces)
+						{
+							combinedPieces.clear();
+							uint32_t combinedPiecesCount = GetCombinedPieces(piece);
+
+							if (combinedPiecesCount >= 4)
+							{
+								for (auto& combinedPiece : combinedPieces)
+								{
+									lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
+
+									// Unlock pieces so they can move again until they collide with another piece or with the grid
+									for (auto& pieceToMove : lockedPieces)
+									{
+										if (pieceToMove->GetPosition().second <= combinedPiece->GetPosition().second &&
+											pieceToMove->GetPosition().first == combinedPiece->GetPosition().first)
+										{
+											pieceToMove->SetLocked(false);
+										}
+									}
+								}
+
+								score += 5 * combinedPiecesCount;
+								scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
+
+								break;
+							}
+						}
+
+						// Move the locked pieces when they get unlocked
+						// They get unlocked when a set of combined pieces is destroyed
+						if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece) { return piece->IsLocked(); }))
+						{
+							if (lockedPieces.size() == 1)
+							{
+								if (lockedPieces[0]->IsCollidingVertically(gridPositionY, gridHeight))
+									lockedPieces[0]->SetLocked(true);
+
+								lockedPieces[0]->Move(0, 1);
+							}
+							else
+							{
+								for (auto& pieceToMove : lockedPieces)
+								{
+									for (auto& piece : lockedPieces)
+									{
+										if (piece == pieceToMove)
+											continue;
+
+										if (piece->IsLocked())
+										{
+											if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
+												pieceToMove->IsCollidingWithPieceVertically(*piece))
+											{
+												pieceToMove->SetLocked(true);
+											}
+										}
+										else
+										{
+											if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight))
+												pieceToMove->SetLocked(true);
+										}
+									}
+
+									pieceToMove->Move(0, 1);
+								}
+							}
+						}
+						else
+						{
+							SpawnNewPair();
+							break;
+						}
+					}
+				}
+				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
+				{
+					if (timeInGame == (MAX_FRAMERATE / 10))
+					{
+						for (auto& piece : spawnPieces)
+							piece.second->Move(0, 1);
+
+						timeInGame = 0;
+					}
+
+					if (spawnPieces["bottom"]->IsCollidingWithPieceVertically(*spawnPieces["top"]))
+					{
+						if (spawnPieces["top"]->GetRotation() == PieceRotation::Down ||
+							spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+						{
+							spawnPieces["top"]->SetLocked(true);
+							spawnPieces["bottom"]->SetLocked(true);
+						}
+					}
+				}
+
+				// Move spawned pieces every 1sec
+				if (timeInGame == (MAX_FRAMERATE * 1))
+				{
+					for (auto& piece : spawnPieces)
+						piece.second->Move(0, 1);
+
+					timeInGame = 0;
+				}
+			}
+
+			// Input
 			SDL_Event event;
 			if (SDL_PollEvent(&event))
 			{
@@ -398,7 +540,7 @@ int main(int argc, char* args[])
 								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
 									spawnPieces["top"]->Rotate(-90, spawnPieces["bottom"]->GetPosition());
 							}
-							
+
 						}
 						else if (event.key.keysym.sym == SDLK_x)
 						{
@@ -429,7 +571,7 @@ int main(int argc, char* args[])
 								{
 									if (spawnPieces["top"]->GetRotation() == PieceRotation::Down)
 										canRotate = false;
-									
+
 								}
 								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(*piece) == 1)
 								{
@@ -450,7 +592,7 @@ int main(int argc, char* args[])
 					{
 						if (event.key.keysym.sym == SDLK_ESCAPE)
 						{
-							if(s_GameState == GameState::kGamePaused)
+							if (s_GameState == GameState::kGamePaused)
 								s_GameState = GameState::kGameRunning;
 							else
 								s_GameState = GameState::kGamePaused;
@@ -461,141 +603,6 @@ int main(int argc, char* args[])
 
 			// Clear screen
 			renderer.Clear();
-
-			if (s_GameState == GameState::kGameRunning)
-			{
-				timeInGame++;
-
-				// Check if any of the spawned pieces has reached the end of the grid
-				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
-					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
-				{
-					spawnPieces["bottom"]->SetLocked(true);
-					spawnPieces["top"]->SetLocked(true);
-				}
-
-				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
-				for (const auto& piece : lockedPieces)
-				{
-					if (piece->IsCollidingWithPieceVertically(*spawnPieces["top"]))
-						spawnPieces["top"]->SetLocked(true);
-
-					if (piece->IsCollidingWithPieceVertically(*spawnPieces["bottom"]))
-						spawnPieces["bottom"]->SetLocked(true);
-				}
-
-				// If both spawned pieces are locked, check the matches, 
-				// put the spawned pieces inside the locked pieces vector and spawn new ones
-				if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
-				{
-					lockedPieces.emplace_back(spawnPieces["bottom"]);
-					lockedPieces.emplace_back(spawnPieces["top"]);
-					PieceDropSound.Play();
-
-					// Check for matches
-					for (const auto& piece : lockedPieces)
-					{
-						uint32_t combinedPiecesCount = GetCombinedPieces(piece);
-
-						if (combinedPiecesCount >= 4)
-						{
-							for (auto& combinedPiece : combinedPieces)
-							{
-								lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
-
-								// Unlock pieces so they can move again until they collide with another piece or with the grid
-								for (auto& pieceToMove : lockedPieces)
-								{
-									if (pieceToMove->GetPosition().second <= combinedPiece->GetPosition().second &&
-										pieceToMove->GetPosition().first == combinedPiece->GetPosition().first)
-									{
-										pieceToMove->SetLocked(false);
-									}
-								}
-							}
-							
-							score += 5 * combinedPiecesCount;
-							scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
-							
-							// TODO: destroy multiple combinations of pieces, right now is just destroying one combination
- 							break;
-						}
-
-						combinedPieces.clear();
-					}
-
-					SpawnNewPair();
-				}
-				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
-				{
-					if (timeInGame == (MAX_FRAMERATE / 10))
-					{
-						for (auto& piece : spawnPieces)
-							piece.second->Move(0, 1);
-
-						timeInGame = 0;
-					}
-
-					if (spawnPieces["bottom"]->IsCollidingWithPieceVertically(*spawnPieces["top"]))
-					{
-						if (spawnPieces["top"]->GetRotation() == PieceRotation::Down ||
-							spawnPieces["top"]->GetRotation() == PieceRotation::Top)
-						{
-							spawnPieces["top"]->SetLocked(true);
-							spawnPieces["bottom"]->SetLocked(true);
-						}
-					}
-				}
-
-				// Move the locked pieces when they get unlocked
-				// They get unlocked when a set of combined pieces is destroyed
-				if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece){ return piece->IsLocked(); }))
-				{
-					if (lockedPieces.size() == 1)
-					{
-						if (lockedPieces[0]->IsCollidingVertically(gridPositionY, gridHeight))
-							lockedPieces[0]->SetLocked(true);
-
-						lockedPieces[0]->Move(0, 1);
-					}
-					else
-					{
-						for (auto& pieceToMove : lockedPieces)
-						{
-							for (auto& piece : lockedPieces)
-							{
-								if (piece == pieceToMove)
-									continue;
-
-								if (piece->IsLocked())
-								{
-									if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
-										pieceToMove->IsCollidingWithPieceVertically(*piece))
-									{
-										pieceToMove->SetLocked(true);
-									}
-								}
-								else
-								{
-									if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight))
-										pieceToMove->SetLocked(true);
-								}
-							}
-
-							pieceToMove->Move(0, 1);
-						}
-					}
-				}
-
-				// Move spawned pieces every 1sec
-				if (timeInGame == (MAX_FRAMERATE * 1))
-				{
-					for (auto& piece : spawnPieces)
-						piece.second->Move(0, 1);
-
-					timeInGame = 0;
-				}
-			}
 
 			// Draw
 			// Draw background under everything

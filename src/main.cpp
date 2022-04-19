@@ -547,6 +547,46 @@ int main(int argc, char* args[])
 					}
 				}
 
+				// Move the locked pieces when they get unlocked
+				// They get unlocked when a set of combined pieces is destroyed
+				if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece){ return piece->IsLocked(); }))
+				{
+					if (lockedPieces.size() == 1)
+					{
+						if (lockedPieces[0]->IsCollidingVertically(gridPositionY, gridHeight))
+							lockedPieces[0]->SetLocked(true);
+
+						lockedPieces[0]->Move(0, 1);
+					}
+					else
+					{
+						for (auto& pieceToMove : lockedPieces)
+						{
+							for (auto& piece : lockedPieces)
+							{
+								if (piece == pieceToMove)
+									continue;
+
+								if (piece->IsLocked())
+								{
+									if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
+										pieceToMove->IsCollidingWithPieceVertically(*piece))
+									{
+										pieceToMove->SetLocked(true);
+									}
+								}
+								else
+								{
+									if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight))
+										pieceToMove->SetLocked(true);
+								}
+							}
+
+							pieceToMove->Move(0, 1);
+						}
+					}
+				}
+
 				// Move spawned pieces every 1sec
 				if (timeInGame == (MAX_FRAMERATE * 1))
 				{
@@ -554,31 +594,6 @@ int main(int argc, char* args[])
 						piece.second->Move(0, 1);
 
 					timeInGame = 0;
-				} 
-				
-				// Move the locked pieces when they get unlocked
-				// They get unlocked when a set of combined pieces is destroyed
-				if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece){ return piece->IsLocked(); }))
-				{
-					for (auto& pieceToMove : lockedPieces)
-					{
-						for (auto& piece : lockedPieces)
-						{
-							if (piece == pieceToMove)
-								continue;
-
-							if(!piece->IsLocked())
-								continue;
-
-							if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
-								pieceToMove->IsCollidingWithPieceVertically(*piece))
-							{
-								pieceToMove->SetLocked(true);
-							}
-						}
-
-						pieceToMove->Move(0, 1);
-					}
 				}
 			}
 

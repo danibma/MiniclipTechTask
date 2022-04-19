@@ -500,12 +500,23 @@ int main(int argc, char* args[])
 						if (combinedPiecesCount >= 4)
 						{
 							for (auto& combinedPiece : combinedPieces)
+							{
 								lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
+
+								// Unlock pieces so they can move again until they collide with another piece or with the grid
+								for (auto& pieceToMove : lockedPieces)
+								{
+									if (pieceToMove->GetPosition().second <= combinedPiece->GetPosition().second &&
+										pieceToMove->GetPosition().first == combinedPiece->GetPosition().first)
+									{
+										pieceToMove->SetLocked(false);
+									}
+								}
+							}
 							
 							score += 5 * combinedPiecesCount;
 							scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
-
-							// TODO: not combined pieces move down until they cant move anymore
+							
 							// TODO: destroy multiple combinations of pieces, right now is just destroying one combination
  							break;
 						}
@@ -513,7 +524,34 @@ int main(int argc, char* args[])
 						combinedPieces.clear();
 					}
 
-					SpawnNewPair();
+					// Move the locked pieces when they get unlocked
+					// They get unlocked when a set of combined pieces is destroyed
+					if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece) { return piece->IsLocked(); }))
+					{
+						for (auto& pieceToMove : lockedPieces)
+						{
+							for (auto& piece : lockedPieces)
+							{
+								if (piece == pieceToMove)
+									continue;
+
+								if (!piece->IsLocked())
+									continue;
+
+								if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
+									pieceToMove->IsCollidingWithPieceVertically(*piece))
+								{
+									pieceToMove->SetLocked(true);
+								}
+							}
+
+							pieceToMove->Move(0, 1);
+						}
+					}
+					else
+					{
+						SpawnNewPair();
+					}
 				}
 				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
 				{
@@ -543,7 +581,7 @@ int main(int argc, char* args[])
 						piece.second->Move(0, 1);
 
 					timeInGame = 0;
-				}
+				} 
 			}
 
 			// Draw

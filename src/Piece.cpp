@@ -77,10 +77,10 @@ int8_t Piece::IsCollidingHoriontally(int32_t limitX, int32_t limitWidth)
 	return 0;
 }
 
-int8_t Piece::IsCollidingWithPieceHorizontally(std::shared_ptr<Piece> piece)
+int8_t Piece::IsCollidingWithPieceHorizontally(const Piece& piece)
 {
-	auto [positionX, positionY] = piece->GetPosition();
-	auto [sizeX, sizeY] = piece->GetSize();
+	auto [positionX, positionY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
 
 	if (((m_PositionX + m_Width) == positionX) && positionY == m_PositionY)
 		return 1;
@@ -91,10 +91,10 @@ int8_t Piece::IsCollidingWithPieceHorizontally(std::shared_ptr<Piece> piece)
 	return 0;
 }
 
-int8_t Piece::IsCollidingWithPieceVertically(std::shared_ptr<Piece> piece)
+int8_t Piece::IsCollidingWithPieceVertically(const Piece& piece)
 {
-	auto [positionX, positionY] = piece->GetPosition();
-	auto [sizeX, sizeY] = piece->GetSize();
+	auto [positionX, positionY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
 
 	if ((m_PositionX + m_Width) <= (positionX) || (m_PositionX) >= (positionX + sizeX))
 		return 0;
@@ -103,4 +103,16 @@ int8_t Piece::IsCollidingWithPieceVertically(std::shared_ptr<Piece> piece)
 		return 0;
 
 	return 1;
+}
+
+bool operator==(const Piece& leftPiece, const Piece& rightPiece)
+{
+	return leftPiece.GetPosition().first == rightPiece.GetPosition().first &&
+		leftPiece.GetPosition().second == rightPiece.GetPosition().second &&
+		leftPiece.GetColor() == rightPiece.GetColor();
+}
+
+bool operator!=(const Piece& leftPiece, const Piece& rightPiece)
+{
+	return !(leftPiece == rightPiece);
 }

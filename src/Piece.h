@@ -88,7 +88,7 @@ public:
 	inline const PieceColor& GetColor() const { return m_Color; }
 	const PieceRotation GetRotation() const;
 
-	inline const bool IsLocked() { return m_IsLocked; }
+	inline bool IsLocked() const { return m_IsLocked; }
 
 	void Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint);
 
@@ -124,7 +124,7 @@ public:
 	 *
 	 * @returns 1 if it is colliding with any piece below it and 0 if it isn't colliding with piece
 	 */
-	int8_t IsCollidingWithPieceVertically(std::shared_ptr<Piece> piece);
+	int8_t IsCollidingWithPieceVertically(const Piece& piece);
 
 	/**
 	 * Check if a piece is colliding with a piece horizontally
@@ -133,9 +133,13 @@ public:
 	 *
 	 * @returns -1 if it is colliding with any piece on the left, 1 if it is colliding with any piece on the right and 0 if it isn't colliding with any piece
 	 */
-	int8_t IsCollidingWithPieceHorizontally(std::shared_ptr<Piece> piece);
+	int8_t IsCollidingWithPieceHorizontally(const Piece& piece);
 
 	inline void SetLocked(bool value) { m_IsLocked = value; }
+
+	// Operator overloading
+	friend bool operator==(const Piece& leftPiece, const Piece& rightPiece);
+	friend bool operator!=(const Piece& leftPiece, const Piece& rightPiece);
 
 private:
 	PieceColor m_Color = PieceColor::None;

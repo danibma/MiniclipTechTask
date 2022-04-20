@@ -16,6 +16,11 @@ void Renderer::Init(SDL_Window* window, uint32_t screenWidth, uint32_t screenHei
 
 Renderer::~Renderer()
 {
+	for (auto& texture : m_TextureCache)
+		SDL_DestroyTexture(texture.second);
+
+	m_TextureCache.clear();
+
 	SDL_DestroyRenderer(m_Renderer);
 
 	TTF_Quit();
@@ -33,35 +38,35 @@ void Renderer::Update()
 	SDL_RenderPresent(m_Renderer);
 }
 
-SDL_Texture* Renderer::CreateTexture(const char* path)
+void Renderer::AddTexture(const std::string& textureName, const std::string& path)
 {
-	SDL_Surface* surface = SDL_LoadBMP(path);
+	SDL_Surface* surface = SDL_LoadBMP(path.c_str());
 	auto texture = SDL_CreateTextureFromSurface(m_Renderer, surface);
 	SDL_FreeSurface(surface);
 
-	return texture;
+	m_TextureCache[textureName] = texture;
 }
 
-void Renderer::DrawRenderable(std::shared_ptr<Renderable> piece)
+void Renderer::DrawRenderable(Renderable& piece)
 {
-	auto [pieceX, pieceY] = piece->GetPosition();
-	auto [sizeX, sizeY] = piece->GetSize();
+	auto [pieceX, pieceY] = piece.GetPosition();
+	auto [sizeX, sizeY] = piece.GetSize();
 	SDL_Rect rect = { pieceX, pieceY, sizeX, sizeY};
 
-	SDL_RenderCopy(m_Renderer, piece->GetTexture(), nullptr, &rect);
+	SDL_RenderCopy(m_Renderer, GetTexture(piece.GetTextureName()), nullptr, &rect);
 }
 
-void Renderer::DrawButton(std::shared_ptr<Button> button)
+void Renderer::DrawButton(Button& button)
 {
 	// Draw button background
-	auto [posX, posY] = button->GetPosition();
-	auto [sizeX, sizeY] = button->GetSize();
+	auto [posX, posY] = button.GetPosition();
+	auto [sizeX, sizeY] = button.GetSize();
 	SDL_Rect rect = { posX, posY, sizeX, sizeY };
 
-	SDL_RenderCopy(m_Renderer, button->GetTexture(), nullptr, &rect);
+	SDL_RenderCopy(m_Renderer, GetTexture(button.GetTextureName()), nullptr, &rect);
 
 	// Draw button text
-	DrawText(button->GetText());
+	DrawText(button.GetText());
 }
 
 void Renderer::DrawText(Text& text)

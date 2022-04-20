@@ -33,12 +33,9 @@ Renderer renderer;
 
 std::array<bool, 8> occupiedCells;
 
-std::vector<std::shared_ptr<Piece>> combinedPieces;
-std::vector<std::shared_ptr<Piece>> lockedPieces;
-std::unordered_map<const char*, std::shared_ptr<Piece>> spawnPieces;
-
-// pieces colors textures
-std::unordered_map<const char*, SDL_Texture*> textureCache;
+std::vector<Piece> combinedPieces;
+std::vector<Piece> lockedPieces;
+std::unordered_map<const char*, Piece> spawnPieces;
 
 // Grid dimensions
 int32_t gridWidth = 8 * PIECE_SIZE;
@@ -63,10 +60,10 @@ void CheckGameLost()
 	for (const auto& piece : lockedPieces)
 	{
 		// Check if any of the pieces is at the top row of the grid
-		if (piece->GetPosition().second == (gridPositionY + PIECE_SIZE))
+		if (piece.GetPosition().second == (gridPositionY + PIECE_SIZE))
 		{
 			// if it is get the cell number of the piece and make it occupied on the array
-			auto rowCellNumber = (piece->GetPosition().first - gridPositionX) / PIECE_SIZE;
+			auto rowCellNumber = (piece.GetPosition().first - gridPositionX) / PIECE_SIZE;
 			occupiedCells[rowCellNumber] = true;
 		}
 	}
@@ -107,21 +104,21 @@ void SpawnNewPair()
 		uint32_t positionX = gridPositionX + (cell * PIECE_SIZE);
 
 		// top piece
-		std::shared_ptr<Piece> topPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
-		topPiece->SetTexture(textureCache[Utils::PieceColorToString(topPiece->GetColor())]);
+		Piece topPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
+		topPiece.SetTextureName(Utils::PieceColorToString(topPiece.GetColor()));
 		spawnPieces["top"] = topPiece;
 
 		// bottom piece
 		color = dist(mt);
-		std::shared_ptr<Piece> bottomPiece = std::make_shared<Piece>(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
-		bottomPiece->SetTexture(textureCache[Utils::PieceColorToString(bottomPiece->GetColor())]);
+		Piece bottomPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
+		bottomPiece.SetTextureName(Utils::PieceColorToString(bottomPiece.GetColor()));
 		spawnPieces["bottom"] = bottomPiece;
 	}
 }
 
-uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece)
+uint32_t GetCombinedPieces(const Piece& piece)
 {
-	auto [centerX, centerY] = piece->GetPosition();
+	auto [centerX, centerY] = piece.GetPosition();
 
 	uint32_t combinedPiecesCount = 0;
 
@@ -139,8 +136,8 @@ uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece)
 		nextPieceX = (int32_t)x;
 		nextPieceY = (int32_t)y;
 
-		auto nextPiece = std::find_if(lockedPieces.begin(), lockedPieces.end(), [&](std::shared_ptr<Piece> currentPiece) {
-			auto [currentX, currentY] = currentPiece->GetPosition();
+		auto nextPiece = std::find_if(lockedPieces.begin(), lockedPieces.end(), [&](Piece& currentPiece) {
+			auto [currentX, currentY] = currentPiece.GetPosition();
 
 			return currentX == nextPieceX && currentY == nextPieceY;
 		});
@@ -150,7 +147,7 @@ uint32_t GetCombinedPieces(std::shared_ptr<Piece> piece)
 			if (std::find(combinedPieces.begin(), combinedPieces.end(), nextPiece[0]) != combinedPieces.end())
 				continue;
 
-			if (nextPiece[0]->GetColor() == piece->GetColor())
+			if (nextPiece[0].GetColor() == piece.GetColor())
 			{
 				combinedPieces.emplace_back(nextPiece[0]);
 				combinedPiecesCount++;
@@ -214,20 +211,20 @@ int main(int argc, char* args[])
 	float maxPeriod = (float)1000 / MAX_FRAMERATE;
 
 	// Load colors respective texture
-	textureCache[Utils::PieceColorToString(PieceColor::Green)] = renderer.CreateTexture("assets/green.bmp");
-	textureCache[Utils::PieceColorToString(PieceColor::LightBlue)] = renderer.CreateTexture("assets/lightblue.bmp");
-	textureCache[Utils::PieceColorToString(PieceColor::Orange)] = renderer.CreateTexture("assets/orange.bmp");
-	textureCache[Utils::PieceColorToString(PieceColor::Red)] = renderer.CreateTexture("assets/red.bmp");
-	textureCache["background"] = renderer.CreateTexture("assets/background.bmp");
-	textureCache["buttonBackground"] = renderer.CreateTexture("assets/button.bmp");
-	textureCache["buttonPressed"] = renderer.CreateTexture("assets/button_pressed.bmp");
+	renderer.AddTexture(Utils::PieceColorToString(PieceColor::Green), "assets/green.bmp");
+	renderer.AddTexture(Utils::PieceColorToString(PieceColor::LightBlue), "assets/lightblue.bmp");
+	renderer.AddTexture(Utils::PieceColorToString(PieceColor::Orange), "assets/orange.bmp");
+	renderer.AddTexture(Utils::PieceColorToString(PieceColor::Red), "assets/red.bmp");
+	renderer.AddTexture("background", "assets/background.bmp");
+	renderer.AddTexture("buttonBackground", "assets/button.bmp");
+	renderer.AddTexture("buttonPressed", "assets/button_pressed.bmp");
 
-	std::shared_ptr<Renderable> background = std::make_shared<Renderable>(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, textureCache["background"]);
+	Renderable background(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, "background");
 
 	// Main Menu
 	Text playButtonText(renderer, "Play Game", teletoonInGame);
-	std::shared_ptr<Button> playButton = std::make_shared<Button>(playButtonText, textureCache["buttonBackground"], textureCache["buttonPressed"], std::pair((SCREEN_WIDTH / 2) - (350 / 2), 150), std::pair(350, 80));
-	playButton->SetOnClickCallback([]() {
+	Button playButton(playButtonText, "buttonBackground", "buttonPressed", std::pair((SCREEN_WIDTH / 2) - (350 / 2), 150), std::pair(350, 80));
+	playButton.SetOnClickCallback([]() {
 		s_GameState = GameState::kGameRunning;
 
 		// Spawn the first pair of pieces
@@ -235,8 +232,8 @@ int main(int argc, char* args[])
 	});
 
 	Text quitButtonText(renderer, "Quit Game", teletoonInGame);
-	std::shared_ptr<Button> quitButton = std::make_shared<Button>(quitButtonText, textureCache["buttonBackground"], textureCache["buttonPressed"], std::pair((SCREEN_WIDTH / 2) - (350 / 2), 250), std::pair( 350, 80 ));
-	quitButton->SetOnClickCallback([]() {
+	Button quitButton(quitButtonText, "buttonBackground", "buttonPressed", std::pair((SCREEN_WIDTH / 2) - (350 / 2), 250), std::pair( 350, 80 ));
+	quitButton.SetOnClickCallback([]() {
 		s_IsRunning = false;
 	});
 
@@ -270,28 +267,28 @@ int main(int argc, char* args[])
 				timeInGame++;
 
 				// Check if any of the spawned pieces has reached the end of the grid
-				if (spawnPieces["bottom"]->IsCollidingVertically(gridPositionY, gridHeight) ||
-					spawnPieces["top"]->IsCollidingVertically(gridPositionY, gridHeight))
+				if (spawnPieces["bottom"].IsCollidingVertically(gridPositionY, gridHeight) ||
+					spawnPieces["top"].IsCollidingVertically(gridPositionY, gridHeight))
 				{
-					spawnPieces["bottom"]->SetLocked(true);
-					spawnPieces["top"]->SetLocked(true);
+					spawnPieces["bottom"].SetLocked(true);
+					spawnPieces["top"].SetLocked(true);
 				}
 
 				// Check if any of the spawned pieces is colliding with any of the locked pieces on the grid
-				for (const auto& piece : lockedPieces)
+				for (auto& piece : lockedPieces)
 				{
-					if (piece->IsCollidingWithPieceVertically(spawnPieces["top"]))
-						spawnPieces["top"]->SetLocked(true);
+					if (piece.IsCollidingWithPieceVertically(spawnPieces["top"]))
+						spawnPieces["top"].SetLocked(true);
 
-					if (piece->IsCollidingWithPieceVertically(spawnPieces["bottom"]))
-						spawnPieces["bottom"]->SetLocked(true);
+					if (piece.IsCollidingWithPieceVertically(spawnPieces["bottom"]))
+						spawnPieces["bottom"].SetLocked(true);
 				}
 
 				// If both spawned pieces are locked, check the matches, 
 				// put the spawned pieces inside the locked pieces vector and spawn new ones
-				if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
+				if (spawnPieces["top"].IsLocked() && spawnPieces["bottom"].IsLocked())
 				{
-					if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+					if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 					{
 						lockedPieces.emplace_back(spawnPieces["bottom"]);
 						lockedPieces.emplace_back(spawnPieces["top"]);
@@ -329,10 +326,10 @@ int main(int argc, char* args[])
 									// Unlock pieces so they can move again until they collide with another piece or with the grid
 									for (auto& pieceToMove : lockedPieces)
 									{
-										if (pieceToMove->GetPosition().second <= combinedPiece->GetPosition().second &&
-											pieceToMove->GetPosition().first == combinedPiece->GetPosition().first)
+										if (pieceToMove.GetPosition().second <= combinedPiece.GetPosition().second &&
+											pieceToMove.GetPosition().first == combinedPiece.GetPosition().first)
 										{
-											pieceToMove->SetLocked(false);
+											pieceToMove.SetLocked(false);
 										}
 									}
 								}
@@ -346,14 +343,14 @@ int main(int argc, char* args[])
 
 						// Move the locked pieces when they get unlocked
 						// They get unlocked when a set of combined pieces is destroyed
-						if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](std::shared_ptr<Piece> piece) { return piece->IsLocked(); }))
+						if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](const Piece& piece) { return piece.IsLocked(); }))
 						{
 							if (lockedPieces.size() == 1)
 							{
-								if (lockedPieces[0]->IsCollidingVertically(gridPositionY, gridHeight))
-									lockedPieces[0]->SetLocked(true);
+								if (lockedPieces[0].IsCollidingVertically(gridPositionY, gridHeight))
+									lockedPieces[0].SetLocked(true);
 
-								lockedPieces[0]->Move(0, 1);
+								lockedPieces[0].Move(0, 1);
 							}
 							else
 							{
@@ -364,22 +361,22 @@ int main(int argc, char* args[])
 										if (piece == pieceToMove)
 											continue;
 
-										if (piece->IsLocked())
+										if (piece.IsLocked())
 										{
-											if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight) ||
-												pieceToMove->IsCollidingWithPieceVertically(piece))
+											if (pieceToMove.IsCollidingVertically(gridPositionY, gridHeight) ||
+												pieceToMove.IsCollidingWithPieceVertically(piece))
 											{
-												pieceToMove->SetLocked(true);
+												pieceToMove.SetLocked(true);
 											}
 										}
 										else
 										{
-											if (pieceToMove->IsCollidingVertically(gridPositionY, gridHeight))
-												pieceToMove->SetLocked(true);
+											if (pieceToMove.IsCollidingVertically(gridPositionY, gridHeight))
+												pieceToMove.SetLocked(true);
 										}
 									}
 
-									pieceToMove->Move(0, 1);
+									pieceToMove.Move(0, 1);
 								}
 							}
 						}
@@ -390,23 +387,23 @@ int main(int argc, char* args[])
 						}
 					}
 				}
-				else if (spawnPieces["top"]->IsLocked() || spawnPieces["bottom"]->IsLocked())
+				else if (spawnPieces["top"].IsLocked() || spawnPieces["bottom"].IsLocked())
 				{
 					if (timeInGame == (MAX_FRAMERATE / 10))
 					{
 						for (auto& piece : spawnPieces)
-							piece.second->Move(0, 1);
+							piece.second.Move(0, 1);
 
 						timeInGame = 0;
 					}
 
-					if (spawnPieces["bottom"]->IsCollidingWithPieceVertically(spawnPieces["top"]))
+					if (spawnPieces["bottom"].IsCollidingWithPieceVertically(spawnPieces["top"]))
 					{
-						if (spawnPieces["top"]->GetRotation() == PieceRotation::Down ||
-							spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+						if (spawnPieces["top"].GetRotation() == PieceRotation::Down ||
+							spawnPieces["top"].GetRotation() == PieceRotation::Top)
 						{
-							spawnPieces["top"]->SetLocked(true);
-							spawnPieces["bottom"]->SetLocked(true);
+							spawnPieces["top"].SetLocked(true);
+							spawnPieces["bottom"].SetLocked(true);
 						}
 					}
 				}
@@ -415,7 +412,7 @@ int main(int argc, char* args[])
 				if (timeInGame == (MAX_FRAMERATE * 1))
 				{
 					for (auto& piece : spawnPieces)
-						piece.second->Move(0, 1);
+						piece.second.Move(0, 1);
 
 					timeInGame = 0;
 				}
@@ -432,17 +429,17 @@ int main(int argc, char* args[])
 				{
 					if (event.type == SDL_MOUSEBUTTONDOWN)
 					{
-						if (playButton->IsMouseOver())
-							playButton->OnPressed();
+						if (playButton.IsMouseOver())
+							playButton.OnPressed();
 
-						if (quitButton->IsMouseOver())
-							quitButton->OnPressed();
+						if (quitButton.IsMouseOver())
+							quitButton.OnPressed();
 					}
 
 					if (event.type == SDL_MOUSEBUTTONUP)
 					{
-						playButton->OnRelease();
-						quitButton->OnRelease();
+						playButton.OnRelease();
+						quitButton.OnRelease();
 					}
 				}
 
@@ -453,64 +450,64 @@ int main(int argc, char* args[])
 					{
 						if (event.key.keysym.sym == SDLK_a || event.key.keysym.sym == SDLK_LEFT)
 						{
-							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+							if (!spawnPieces["bottom"].IsLocked() && !spawnPieces["top"].IsLocked())
 							{
-								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
-									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
+								if (spawnPieces["bottom"].IsCollidingHoriontally(gridPositionX, gridWidth) != -1 &&
+									spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) != -1)
 								{
 									// Check if the spawn pieces are colliding with any of the locked pieces
 									bool canMove = true;
 
 									for (const auto& piece : lockedPieces)
 									{
-										if (spawnPieces["top"]->IsCollidingWithPieceHorizontally(piece) == -1)
+										if (spawnPieces["top"].IsCollidingWithPieceHorizontally(piece) == -1)
 											canMove = false;
 
-										if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == -1)
+										if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == -1)
 											canMove = false;
 									}
 
 									if (canMove)
 									{
-										spawnPieces["bottom"]->Move(-1, 0);
-										spawnPieces["top"]->Move(-1, 0);
+										spawnPieces["bottom"].Move(-1, 0);
+										spawnPieces["top"].Move(-1, 0);
 									}
 								}
 							}
 						}
 						else if (event.key.keysym.sym == SDLK_d || event.key.keysym.sym == SDLK_RIGHT)
 						{
-							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+							if (!spawnPieces["bottom"].IsLocked() && !spawnPieces["top"].IsLocked())
 							{
-								if (spawnPieces["bottom"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
-									spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
+								if (spawnPieces["bottom"].IsCollidingHoriontally(gridPositionX, gridWidth) != 1 &&
+									spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) != 1)
 								{
 									// Check if the spawn pieces are colliding with any of the locked pieces
 									bool canMove = true;
 
 									for (const auto& piece : lockedPieces)
 									{
-										if (spawnPieces["top"]->IsCollidingWithPieceHorizontally(piece) == 1)
+										if (spawnPieces["top"].IsCollidingWithPieceHorizontally(piece) == 1)
 											canMove = false;
 
-										if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == 1)
+										if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == 1)
 											canMove = false;
 									}
 
 									if (canMove)
 									{
-										spawnPieces["bottom"]->Move(1, 0);
-										spawnPieces["top"]->Move(1, 0);
+										spawnPieces["bottom"].Move(1, 0);
+										spawnPieces["top"].Move(1, 0);
 									}
 								}
 							}
 						}
 						else if (event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_DOWN)
 						{
-							if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
+							if (!spawnPieces["bottom"].IsLocked() && !spawnPieces["top"].IsLocked())
 							{
-								spawnPieces["bottom"]->Move(0, 1);
-								spawnPieces["top"]->Move(0, 1);
+								spawnPieces["bottom"].Move(0, 1);
+								spawnPieces["top"].Move(0, 1);
 								timeInGame = 0;
 							}
 						}
@@ -519,16 +516,16 @@ int main(int argc, char* args[])
 							bool canRotate = false;
 
 							// Check if the piece has space to rotate without getting out of the grid
-							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
+							if (spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
-								if (spawnPieces["top"]->GetRotation() != PieceRotation::Top)
+								if (spawnPieces["top"].GetRotation() != PieceRotation::Top)
 									canRotate = true;
 							}
-							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
+							else if (spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
-								if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+								if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 									canRotate = true;
-								else if (spawnPieces["top"]->GetRotation() != PieceRotation::Down)
+								else if (spawnPieces["top"].GetRotation() != PieceRotation::Down)
 									canRotate = true;
 							}
 							else
@@ -539,23 +536,23 @@ int main(int argc, char* args[])
 							// Check if the piece has space to rotate and won't collide with any locked piece
 							for (const auto& piece : lockedPieces)
 							{
-								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == -1)
+								if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == -1)
 								{
-									if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+									if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 										canRotate = false;
 
 								}
-								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == 1)
+								else if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == 1)
 								{
-									if (spawnPieces["top"]->GetRotation() == PieceRotation::Down)
+									if (spawnPieces["top"].GetRotation() == PieceRotation::Down)
 										canRotate = false;
 								}
 							}
 
 							if (canRotate)
 							{
-								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-									spawnPieces["top"]->Rotate(-90, spawnPieces["bottom"]->GetPosition());
+								if (!spawnPieces["bottom"].IsLocked() && !spawnPieces["top"].IsLocked())
+									spawnPieces["top"].Rotate(-90, spawnPieces["bottom"].GetPosition());
 							}
 
 						}
@@ -564,16 +561,16 @@ int main(int argc, char* args[])
 							bool canRotate = false;
 
 							// Check if the piece has space to rotate without getting out of the grid
-							if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
+							if (spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) == -1)
 							{
-								if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+								if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 									canRotate = true;
-								else if (spawnPieces["top"]->GetRotation() != PieceRotation::Down)
+								else if (spawnPieces["top"].GetRotation() != PieceRotation::Down)
 									canRotate = true;
 							}
-							else if (spawnPieces["top"]->IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
+							else if (spawnPieces["top"].IsCollidingHoriontally(gridPositionX, gridWidth) == 1)
 							{
-								if (spawnPieces["top"]->GetRotation() != PieceRotation::Top)
+								if (spawnPieces["top"].GetRotation() != PieceRotation::Top)
 									canRotate = true;
 							}
 							else
@@ -584,23 +581,23 @@ int main(int argc, char* args[])
 							// Check if the piece has space to rotate and won't collide with any locked piece
 							for (const auto& piece : lockedPieces)
 							{
-								if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == -1)
+								if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == -1)
 								{
-									if (spawnPieces["top"]->GetRotation() == PieceRotation::Down)
+									if (spawnPieces["top"].GetRotation() == PieceRotation::Down)
 										canRotate = false;
 
 								}
-								else if (spawnPieces["bottom"]->IsCollidingWithPieceHorizontally(piece) == 1)
+								else if (spawnPieces["bottom"].IsCollidingWithPieceHorizontally(piece) == 1)
 								{
-									if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+									if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 										canRotate = false;
 								}
 							}
 
 							if (canRotate)
 							{
-								if (!spawnPieces["bottom"]->IsLocked() && !spawnPieces["top"]->IsLocked())
-									spawnPieces["top"]->Rotate(90, spawnPieces["bottom"]->GetPosition());
+								if (!spawnPieces["bottom"].IsLocked() && !spawnPieces["top"].IsLocked())
+									spawnPieces["top"].Rotate(90, spawnPieces["bottom"].GetPosition());
 							}
 						}
 					}
@@ -632,7 +629,7 @@ int main(int argc, char* args[])
 			{
 				// Only render the spawn pieces when they are inside the grid,
 				// don't render them when they are above it
-				if (piece.second->GetPosition().second >= gridPositionY)
+				if (piece.second.GetPosition().second >= gridPositionY)
 					renderer.DrawRenderable(piece.second);
 			}
 
@@ -696,10 +693,6 @@ int main(int argc, char* args[])
 	teletoonInGame.CloseFont();
 	teletoonControlsTitle.CloseFont();
 	teletoonControls.CloseFont();
-
-	for (const auto& texture : textureCache)
-		SDL_DestroyTexture(texture.second);
-	textureCache.clear();
 
 	//Destroy window
 	SDL_DestroyWindow(window);

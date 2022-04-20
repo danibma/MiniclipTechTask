@@ -20,16 +20,18 @@ public:
 	void Clear();
 	void Update();
 
-	SDL_Texture* CreateTexture(const char* path);
+	void AddTexture(const std::string& textureName, const std::string& path);
 
-	void DrawRenderable(std::shared_ptr<Renderable> piece);
-	void DrawButton(std::shared_ptr<Button> button);
+	void DrawRenderable(Renderable& piece);
+	void DrawButton(Button& button);
 	void DrawText(Text& text);
 	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 
 	inline SDL_Renderer* GetSDLRenderer() const { return m_Renderer; }
+	inline SDL_Texture* GetTexture(std::string_view textureName) { return m_TextureCache[textureName.data()]; }
 
 private:
 	SDL_Renderer* m_Renderer;
+	std::unordered_map<std::string, SDL_Texture*> m_TextureCache;
 };
 

@@ -1,6 +1,6 @@
 #include "Button.h"
 
-Button::Button(Text& text, SDL_Texture* backgroundTexture, SDL_Texture* pressedTexture, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> size) 
+Button::Button(Text& text, const std::string& backgroundTextureName, const std::string& pressedTextureName, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> size)
 	: m_Text(text)
 {
 	auto [posX, posY] = position;
@@ -11,9 +11,9 @@ Button::Button(Text& text, SDL_Texture* backgroundTexture, SDL_Texture* pressedT
 	m_Width = sizeX;
 	m_Height = sizeY;
 
-	m_Texture = backgroundTexture;
-	m_BackgroundTexture = backgroundTexture;
-	m_PressedTexture = pressedTexture;
+	m_TextureName = backgroundTextureName;
+	m_BackgroundTextureName = backgroundTextureName;
+	m_PressedTextureName = pressedTextureName;
 
 	// Initiliaze the callback as an empty function
 	m_ClickCallback = []() { };
@@ -35,7 +35,7 @@ void Button::SetOnClickCallback(const std::function<void()>& func)
 
 void Button::OnPressed()
 {
-	m_Texture = m_PressedTexture;
+	m_TextureName = m_PressedTextureName;
 	m_IsPressed = true;
 }
 
@@ -43,7 +43,7 @@ void Button::OnRelease()
 {
 	if (m_IsPressed)
 	{
-		m_Texture = m_BackgroundTexture;
+		m_TextureName = m_BackgroundTextureName;
 
 		m_ClickCallback();
 

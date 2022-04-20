@@ -8,7 +8,7 @@
 class Button : public Renderable
 {
 public:
-	Button(Text& text, SDL_Texture* backgroundTexture, SDL_Texture* pressedTexture, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> size);
+	Button(Text& text, const std::string& backgroundTextureName, const std::string& pressedTextureName, std::pair<int32_t, int32_t> position, std::pair<int32_t, int32_t> size);
 	~Button();
 
 	inline Text& GetText() { return m_Text; }
@@ -28,7 +28,7 @@ private:
 
 	bool m_IsPressed = false;
 
-	SDL_Texture* m_BackgroundTexture;
-	SDL_Texture* m_PressedTexture;
+	std::string m_BackgroundTextureName;
+	std::string m_PressedTextureName;
 };
 

@@ -42,26 +42,26 @@ SDL_Texture* Renderer::CreateTexture(const char* path)
 	return texture;
 }
 
-void Renderer::DrawRenderable(Renderable& piece)
+void Renderer::DrawRenderable(std::shared_ptr<Renderable> piece)
 {
-	auto [pieceX, pieceY] = piece.GetPosition();
-	auto [sizeX, sizeY] = piece.GetSize();
+	auto [pieceX, pieceY] = piece->GetPosition();
+	auto [sizeX, sizeY] = piece->GetSize();
 	SDL_Rect rect = { pieceX, pieceY, sizeX, sizeY};
 
-	SDL_RenderCopy(m_Renderer, piece.GetTexture(), nullptr, &rect);
+	SDL_RenderCopy(m_Renderer, piece->GetTexture(), nullptr, &rect);
 }
 
-void Renderer::DrawButton(Button& button)
+void Renderer::DrawButton(std::shared_ptr<Button> button)
 {
 	// Draw button background
-	auto [posX, posY] = button.GetPosition();
-	auto [sizeX, sizeY] = button.GetSize();
+	auto [posX, posY] = button->GetPosition();
+	auto [sizeX, sizeY] = button->GetSize();
 	SDL_Rect rect = { posX, posY, sizeX, sizeY };
 
-	SDL_RenderCopy(m_Renderer, button.GetTexture(), nullptr, &rect);
+	SDL_RenderCopy(m_Renderer, button->GetTexture(), nullptr, &rect);
 
 	// Draw button text
-	DrawText(button.GetText());
+	DrawText(button->GetText());
 }
 
 void Renderer::DrawText(Text& text)

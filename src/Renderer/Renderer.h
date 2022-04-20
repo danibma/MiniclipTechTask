@@ -22,8 +22,8 @@ public:
 
 	SDL_Texture* CreateTexture(const char* path);
 
-	void DrawRenderable(Renderable& piece);
-	void DrawButton(Button& button);
+	void DrawRenderable(std::shared_ptr<Renderable> piece);
+	void DrawButton(std::shared_ptr<Button> button);
 	void DrawText(Text& text);
 	void DrawText(Text& text, int32_t positionX, int32_t positionY);
 

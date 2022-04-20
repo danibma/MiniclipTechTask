@@ -8,6 +8,8 @@
 
 #include "Sound/SoundEffect.h"
 
+#include <memory>
+
 #define PIECE_SIZE 32
 
 #define ToRadians(x) (x * (M_PI / 180))
@@ -122,7 +124,7 @@ public:
 	 *
 	 * @returns 1 if it is colliding with any piece below it and 0 if it isn't colliding with piece
 	 */
-	int8_t IsCollidingWithPieceVertically(Piece& piece);
+	int8_t IsCollidingWithPieceVertically(std::shared_ptr<Piece> piece);
 
 	/**
 	 * Check if a piece is colliding with a piece horizontally
@@ -131,7 +133,7 @@ public:
 	 *
 	 * @returns -1 if it is colliding with any piece on the left, 1 if it is colliding with any piece on the right and 0 if it isn't colliding with any piece
 	 */
-	int8_t IsCollidingWithPieceHorizontally(Piece& piece);
+	int8_t IsCollidingWithPieceHorizontally(std::shared_ptr<Piece> piece);
 
 	inline void SetLocked(bool value) { m_IsLocked = value; }
 

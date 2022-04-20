@@ -4,7 +4,7 @@
 class SoundEffect
 {
 public:
-	SoundEffect() {}
+	SoundEffect() = default;
 	SoundEffect(const char* path);
 
 	void Destroy();

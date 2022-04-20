@@ -12,7 +12,7 @@
 
 #define PIECE_SIZE 32
 
-#define ToRadians(x) (x * (M_PI / 180))
+#define ToRadians(x) ((x) * (M_PI / 180))
 
 enum class PieceColor
 {
@@ -89,7 +89,14 @@ public:
 	const PieceRotation GetRotation() const;
 
 	inline bool IsLocked() const { return m_IsLocked; }
+	inline void SetLocked(bool value) { m_IsLocked = value; }
 
+	/**
+	 * Rotates the piece, by the given angle(in degrees), around a center point
+	 *
+	 * @param int32_t angle
+	 * @param const std::pair<int32_t, int32_t>& centerPoint
+	 */
 	void Rotate(int32_t angle, const std::pair<int32_t, int32_t>& centerPoint);
 
 	/**
@@ -134,8 +141,6 @@ public:
 	 * @returns -1 if it is colliding with any piece on the left, 1 if it is colliding with any piece on the right and 0 if it isn't colliding with any piece
 	 */
 	int8_t IsCollidingWithPieceHorizontally(const Piece& piece);
-
-	inline void SetLocked(bool value) { m_IsLocked = value; }
 
 	// Operator overloading
 	friend bool operator==(const Piece& leftPiece, const Piece& rightPiece);

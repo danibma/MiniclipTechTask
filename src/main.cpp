@@ -106,13 +106,13 @@ void SpawnNewPair()
 		// top piece
 		Piece topPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - (PIECE_SIZE * 2));
 		topPiece.SetTextureName(Utils::PieceColorToString(topPiece.GetColor()));
-		spawnPieces["top"] = topPiece;
+		spawnPieces["top"] = std::move(topPiece);
 
 		// bottom piece
 		color = dist(mt);
 		Piece bottomPiece(Utils::IntToPieceColor(color), positionX, gridPositionY - PIECE_SIZE);
 		bottomPiece.SetTextureName(Utils::PieceColorToString(bottomPiece.GetColor()));
-		spawnPieces["bottom"] = bottomPiece;
+		spawnPieces["bottom"] = std::move(bottomPiece);
 	}
 }
 
@@ -288,6 +288,8 @@ int main(int argc, char* args[])
 				// put the spawned pieces inside the locked pieces vector and spawn new ones
 				if (spawnPieces["top"].IsLocked() && spawnPieces["bottom"].IsLocked())
 				{
+					// Check which spawn piece is on top and and adds the one below first,
+					// that way when reading the lockedPieces vector it reads the ones below first
 					if (spawnPieces["top"].GetRotation() == PieceRotation::Top)
 					{
 						lockedPieces.emplace_back(spawnPieces["bottom"]);
@@ -316,7 +318,7 @@ int main(int argc, char* args[])
 							combinedPieces.clear();
 							uint32_t combinedPiecesCount = GetCombinedPieces(piece);
 
-							// Check if there are more than four pieces of them same color together
+							// Check if there are more than four pieces of the same color together
 							if (combinedPiecesCount >= 4)
 							{
 								for (auto& combinedPiece : combinedPieces)

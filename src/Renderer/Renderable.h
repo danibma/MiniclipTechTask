@@ -9,7 +9,7 @@
 class Renderable
 {
 public:
-	Renderable(int32_t positionX, int32_t positionY, int32_t sizeX, int32_t sizeY, const std::string& texture);
+	Renderable(int32_t positionX, int32_t positionY, int32_t sizeX, int32_t sizeY, const std::string& textureName);
 	Renderable() = default;
 	virtual ~Renderable() = default;
 

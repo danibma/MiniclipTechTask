@@ -20,6 +20,12 @@ public:
 	void Clear();
 	void Update();
 
+	/**
+	 * Loads a texture from the given path, adds it to the texture cache with key being the given texture name
+	 *
+	 * @param const std::string& textureName
+	 * @param const std::string& path
+	 */
 	void AddTexture(const std::string& textureName, const std::string& path);
 
 	void DrawRenderable(Renderable& piece);

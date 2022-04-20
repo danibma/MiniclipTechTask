@@ -289,8 +289,16 @@ int main(int argc, char* args[])
 				// put the spawned pieces inside the locked pieces vector and spawn new ones
 				if (spawnPieces["top"]->IsLocked() && spawnPieces["bottom"]->IsLocked())
 				{
-					lockedPieces.emplace_back(spawnPieces["bottom"]);
-					lockedPieces.emplace_back(spawnPieces["top"]);
+					if (spawnPieces["top"]->GetRotation() == PieceRotation::Top)
+					{
+						lockedPieces.emplace_back(spawnPieces["bottom"]);
+						lockedPieces.emplace_back(spawnPieces["top"]);
+					}
+					else
+					{
+						lockedPieces.emplace_back(spawnPieces["top"]);
+						lockedPieces.emplace_back(spawnPieces["bottom"]);
+					}
 					spawnPieces.clear();
 					
 					PieceDropSound.Play();

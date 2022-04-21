@@ -54,7 +54,8 @@ int timeInGame = 0;
  */
 void CheckGameLost()
 {
-	memset(occupiedCells.data(), false, occupiedCells.size() * sizeof(bool));
+	// Reset every occupied cell to false, to check again which cells are occupied 
+	memset(occupiedCells.data(), 0, occupiedCells.size() * sizeof(bool));
 
 	// Update occupied cells array before checking if they are all true
 	for (const auto& piece : lockedPieces)
@@ -63,7 +64,7 @@ void CheckGameLost()
 		if (piece.GetPosition().second == (gridPositionY + PIECE_SIZE))
 		{
 			// if it is get the cell number of the piece and make it occupied on the array
-			auto rowCellNumber = (piece.GetPosition().first - gridPositionX) / PIECE_SIZE;
+			int32_t rowCellNumber = (piece.GetPosition().first - gridPositionX) / PIECE_SIZE;
 			occupiedCells[rowCellNumber] = true;
 		}
 	}
@@ -304,48 +305,52 @@ int main(int argc, char* args[])
 					
 					PieceDropSound.Play();
 
-					/* TODO:
-					*		 - Maybe figure out a way to speed up the game when the time passes by, maybe speed up the movement of the blocks, instead of 1sec, make it like 20sec
-					*/
-
-					// BUG: when there are atleast two combinations of pieces, if they are separate from each other
-					//		just one of them will get destroyed, fix this whole code
+					// Check if there is any piece combination(4+ pieces of the same color together),
+					// if there is, destroy them, then move every other piece, that needs to be moved down,
+					// until they can't move downwards any more, repeat this until there are no more piece combinations
 					while (true)
 					{
-						// Check for matches
+						combinedPieces.clear();
+
+						// Get every piece combination
 						for (const auto& piece : lockedPieces)
 						{
-							combinedPieces.clear();
 							uint32_t combinedPiecesCount = GetCombinedPieces(piece);
 
-							// Check if there are more than four pieces of the same color together
-							if (combinedPiecesCount >= 4)
+							if (combinedPiecesCount < 4)
+								combinedPieces.resize(combinedPieces.size() - combinedPiecesCount);
+						}
+
+						// If there are no combinations just spawn a new pair
+						if (combinedPieces.size() == 0)
+						{
+							SpawnNewPair();
+							break;
+						}
+
+						// Destroy the combined pieces
+						for (auto& combinedPiece : combinedPieces)
+						{
+							lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
+
+							// Unlock pieces so they can move again until they collide with another piece or with the grid
+							for (auto& pieceToMove : lockedPieces)
 							{
-								for (auto& combinedPiece : combinedPieces)
+								if (pieceToMove.GetPosition().second <= combinedPiece.GetPosition().second &&
+									pieceToMove.GetPosition().first == combinedPiece.GetPosition().first)
 								{
-									lockedPieces.erase(std::remove(lockedPieces.begin(), lockedPieces.end(), combinedPiece), lockedPieces.end());
-
-									// Unlock pieces so they can move again until they collide with another piece or with the grid
-									for (auto& pieceToMove : lockedPieces)
-									{
-										if (pieceToMove.GetPosition().second <= combinedPiece.GetPosition().second &&
-											pieceToMove.GetPosition().first == combinedPiece.GetPosition().first)
-										{
-											pieceToMove.SetLocked(false);
-										}
-									}
+									pieceToMove.SetLocked(false);
 								}
-
-								score += 5 * combinedPiecesCount;
-								scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
-
-								break;
 							}
 						}
 
+						// Update score
+						score += 5 * (uint32_t)combinedPieces.size();
+						scoreText.UpdateText(renderer, "Score: " + std::to_string(score));
+
 						// Move the locked pieces when they get unlocked
 						// They get unlocked when a set of combined pieces is destroyed
-						if (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](const Piece& piece) { return piece.IsLocked(); }))
+						while (!std::all_of(lockedPieces.begin(), lockedPieces.end(), [](const Piece& piece) { return piece.IsLocked(); }))
 						{
 							if (lockedPieces.size() == 1)
 							{
@@ -381,11 +386,6 @@ int main(int argc, char* args[])
 									pieceToMove.Move(0, 1);
 								}
 							}
-						}
-						else
-						{
-							SpawnNewPair();
-							break;
 						}
 					}
 				}

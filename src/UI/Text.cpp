@@ -19,6 +19,12 @@ Text::~Text()
 
 void Text::UpdateText(Renderer& renderer, const std::string& text)
 {
+	if (m_Texture != nullptr)
+	{
+		SDL_DestroyTexture(m_Texture);
+		m_Texture = nullptr;
+	}
+
 	m_Text = text;
 
 	SDL_Surface* surfaceMessage = TTF_RenderText_Solid(m_Font.GetTTFFont(), m_Text.c_str(), m_Color);
